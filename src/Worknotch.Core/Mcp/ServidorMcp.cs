@@ -155,60 +155,60 @@ public sealed class McpTools(Store store, IClock clock)
         switch (name)
         {
             case "list_tasks":
-            {
-                var day = ParseDay(Str(a, "date"), today, today);
-                var data = Synced(now);
-                var tasks = Planner.ForDay(data, day, now);
-                string where = day is null ? "en la bandeja" : $"para {Label(day, today)}";
-                if (tasks.Count == 0) return $"No hay tareas {where}.";
-                var sb = new StringBuilder($"Tareas {where}:\n");
-                foreach (var t in tasks) sb.AppendLine(Line(t));
-                return sb.ToString().TrimEnd();
-            }
-            case "add_tasks":
-            {
-                var titles = (a["titles"] as JsonArray)?.Select(n => n?.GetValue<string>()?.Trim() ?? "").Where(s => s.Length > 0).ToList() ?? [];
-                if (titles.Count == 0) throw new UserException("Indica al menos un título de tarea.");
-                var day = ParseDay(Str(a, "date"), today, today);
-                if (day is { } d && d < today) throw new UserException("Solo se pueden añadir tareas a hoy o a un día futuro.");
-                var priority = ParsePriority(Str(a, "priority"));
-                string? project = Str(a, "project");
-                var added = store.Mutate(data =>
                 {
-                    Planner.CatchUp(data, now);
-                    string? proj = Planner.MatchProject(data, project);
-                    return titles.Select(title =>
-                    {
-                        var t = new TaskItem { Id = Planner.NewId(data), Title = title.ReplaceLineEndings(" "), Day = day, Priority = priority ?? Priority.None, Project = proj, Created = now };
-                        data.Tasks.Add(t);
-                        return t;
-                    }).ToList();
-                });
-                string where = day is null ? "a la bandeja" : $"a {Label(day, today)}";
-                return $"{Texts.Plural(added.Count, "tarea añadida", "tareas añadidas")} {where}:\n" + string.Join('\n', added.Select(Line));
-            }
-            case "get_task":
-            {
-                var t = Planner.Find(Synced(now), Req(a, "id"));
-                var sb = new StringBuilder();
-                sb.AppendLine($"{t.Title} [{t.Id}]");
-                sb.AppendLine(t.Done ? $"Hecha el {t.CompletedAt:yyyy-MM-dd} a las {Texts.Time(t.CompletedAt!.Value)}." : $"Sin hacer, {(t.Day is null ? "en la bandeja" : "para " + Label(t.Day, today))}.");
-                if (t.CarriedFrom is { } cf) sb.AppendLine($"Viene del {cf:yyyy-MM-dd}.");
-                if (t.Priority != Priority.None) sb.AppendLine($"Prioridad {PriorityName(t.Priority)}.");
-                if (t.Project != null) sb.AppendLine($"Proyecto: {t.Project}.");
-                if (t.RemindAt is { } r) sb.AppendLine($"Aviso: {r:yyyy-MM-dd} {Texts.Time(r)}.");
-                if (t.Repeat != Repeat.None) sb.AppendLine($"Se repite: {RepeatName(t.Repeat)}.");
-                if (t.Deadline is { } dl) sb.AppendLine($"Fecha límite: {dl:yyyy-MM-dd}.");
-                if (t.LimitMinutes > 0) sb.AppendLine($"Minutos previstos: {t.LimitMinutes}.");
-                if (t.FocusSeconds > 0) sb.AppendLine($"Foco dedicado: {Texts.Duration(t.FocusSeconds)}.");
-                if (t.Steps.Count > 0)
-                {
-                    sb.AppendLine("Pasos:");
-                    foreach (var s in t.Steps) sb.AppendLine($"  [{(s.Done ? "x" : " ")}] {s.Title}");
+                    var day = ParseDay(Str(a, "date"), today, today);
+                    var data = Synced(now);
+                    var tasks = Planner.ForDay(data, day, now);
+                    string where = day is null ? "en la bandeja" : $"para {Label(day, today)}";
+                    if (tasks.Count == 0) return $"No hay tareas {where}.";
+                    var sb = new StringBuilder($"Tareas {where}:\n");
+                    foreach (var t in tasks) sb.AppendLine(Line(t));
+                    return sb.ToString().TrimEnd();
                 }
-                if (t.Notes.Length > 0) sb.AppendLine("Notas: " + t.Notes);
-                return sb.ToString().TrimEnd();
-            }
+            case "add_tasks":
+                {
+                    var titles = (a["titles"] as JsonArray)?.Select(n => n?.GetValue<string>()?.Trim() ?? "").Where(s => s.Length > 0).ToList() ?? [];
+                    if (titles.Count == 0) throw new UserException("Indica al menos un título de tarea.");
+                    var day = ParseDay(Str(a, "date"), today, today);
+                    if (day is { } d && d < today) throw new UserException("Solo se pueden añadir tareas a hoy o a un día futuro.");
+                    var priority = ParsePriority(Str(a, "priority"));
+                    string? project = Str(a, "project");
+                    var added = store.Mutate(data =>
+                    {
+                        Planner.CatchUp(data, now);
+                        string? proj = Planner.MatchProject(data, project);
+                        return titles.Select(title =>
+                        {
+                            var t = new TaskItem { Id = Planner.NewId(data), Title = title.ReplaceLineEndings(" "), Day = day, Priority = priority ?? Priority.None, Project = proj, Created = now };
+                            data.Tasks.Add(t);
+                            return t;
+                        }).ToList();
+                    });
+                    string where = day is null ? "a la bandeja" : $"a {Label(day, today)}";
+                    return $"{Texts.Plural(added.Count, "tarea añadida", "tareas añadidas")} {where}:\n" + string.Join('\n', added.Select(Line));
+                }
+            case "get_task":
+                {
+                    var t = Planner.Find(Synced(now), Req(a, "id"));
+                    var sb = new StringBuilder();
+                    sb.AppendLine($"{t.Title} [{t.Id}]");
+                    sb.AppendLine(t.Done ? $"Hecha el {t.CompletedAt:yyyy-MM-dd} a las {Texts.Time(t.CompletedAt!.Value)}." : $"Sin hacer, {(t.Day is null ? "en la bandeja" : "para " + Label(t.Day, today))}.");
+                    if (t.CarriedFrom is { } cf) sb.AppendLine($"Viene del {cf:yyyy-MM-dd}.");
+                    if (t.Priority != Priority.None) sb.AppendLine($"Prioridad {PriorityName(t.Priority)}.");
+                    if (t.Project != null) sb.AppendLine($"Proyecto: {t.Project}.");
+                    if (t.RemindAt is { } r) sb.AppendLine($"Aviso: {r:yyyy-MM-dd} {Texts.Time(r)}.");
+                    if (t.Repeat != Repeat.None) sb.AppendLine($"Se repite: {RepeatName(t.Repeat)}.");
+                    if (t.Deadline is { } dl) sb.AppendLine($"Fecha límite: {dl:yyyy-MM-dd}.");
+                    if (t.LimitMinutes > 0) sb.AppendLine($"Minutos previstos: {t.LimitMinutes}.");
+                    if (t.FocusSeconds > 0) sb.AppendLine($"Foco dedicado: {Texts.Duration(t.FocusSeconds)}.");
+                    if (t.Steps.Count > 0)
+                    {
+                        sb.AppendLine("Pasos:");
+                        foreach (var s in t.Steps) sb.AppendLine($"  [{(s.Done ? "x" : " ")}] {s.Title}");
+                    }
+                    if (t.Notes.Length > 0) sb.AppendLine("Notas: " + t.Notes);
+                    return sb.ToString().TrimEnd();
+                }
             case "update_task":
                 return store.Mutate(data =>
                 {
@@ -283,16 +283,16 @@ public sealed class McpTools(Store store, IClock clock)
                     return $"«{t.Title}» vuelve a estar sin hacer.";
                 });
             case "move_task":
-            {
-                string date = Req(a, "date");
-                var day = ParseDay(date, today, today);
-                return store.Mutate(data =>
                 {
-                    var t = Planner.Find(data, Req(a, "id"));
-                    Planner.Move(data, t.Id, day, now);
-                    return day is null ? $"«{t.Title}» espera en la bandeja, sin día." : $"«{t.Title}» pasa a {Label(day, today)}.";
-                });
-            }
+                    string date = Req(a, "date");
+                    var day = ParseDay(date, today, today);
+                    return store.Mutate(data =>
+                    {
+                        var t = Planner.Find(data, Req(a, "id"));
+                        Planner.Move(data, t.Id, day, now);
+                        return day is null ? $"«{t.Title}» espera en la bandeja, sin día." : $"«{t.Title}» pasa a {Label(day, today)}.";
+                    });
+                }
             case "remove_task":
                 return store.Mutate(data =>
                 {
@@ -329,31 +329,31 @@ public sealed class McpTools(Store store, IClock clock)
                     return "Temporizador parado. El tiempo de foco queda apuntado y la tarea sigue en su día.";
                 });
             case "read_notepad":
-            {
-                string text = store.Read().Notepad;
-                return text.Trim().Length == 0 ? "El bloc de notas está vacío." : text;
-            }
+                {
+                    string text = store.Read().Notepad;
+                    return text.Trim().Length == 0 ? "El bloc de notas está vacío." : text;
+                }
             case "write_notepad":
-            {
-                string text = Req(a, "text");
-                if (text.Length > 20000) throw new UserException("El texto es demasiado largo: hasta 20000 caracteres.");
-                bool replace = Str(a, "mode") == "sustituir";
-                store.Mutate(data => data.Notepad = replace || data.Notepad.Trim().Length == 0 ? text : data.Notepad.TrimEnd() + "\n" + text);
-                return replace ? "Bloc de notas sustituido." : "Añadido al bloc de notas.";
-            }
+                {
+                    string text = Req(a, "text");
+                    if (text.Length > 20000) throw new UserException("El texto es demasiado largo: hasta 20000 caracteres.");
+                    bool replace = Str(a, "mode") == "sustituir";
+                    store.Mutate(data => data.Notepad = replace || data.Notepad.Trim().Length == 0 ? text : data.Notepad.TrimEnd() + "\n" + text);
+                    return replace ? "Bloc de notas sustituido." : "Añadido al bloc de notas.";
+                }
             case "week_summary":
-            {
-                var data = Synced(now);
-                var w = Stats.Week(data, now);
-                var sb = new StringBuilder(Stats.Sentence(w)).AppendLine();
-                foreach (var d in w.Days)
-                    sb.AppendLine($"{d.Day:yyyy-MM-dd}: {d.Completed} de {d.Planned} tareas, {Texts.Duration(d.FocusSeconds)} de foco");
-                sb.AppendLine($"Racha: {Texts.Plural(w.Streak, "día", "días")}.");
-                if (w.PeakHour is { } h) sb.AppendLine($"Hora punta: de {h}:00 a {h + 1}:00.");
-                int inbox = data.Tasks.Count(t => t.Day is null && !t.Done);
-                if (inbox > 0) sb.AppendLine($"En la bandeja: {Texts.Plural(inbox, "tarea", "tareas")}.");
-                return sb.ToString().TrimEnd();
-            }
+                {
+                    var data = Synced(now);
+                    var w = Stats.Week(data, now);
+                    var sb = new StringBuilder(Stats.Sentence(w)).AppendLine();
+                    foreach (var d in w.Days)
+                        sb.AppendLine($"{d.Day:yyyy-MM-dd}: {d.Completed} de {d.Planned} tareas, {Texts.Duration(d.FocusSeconds)} de foco");
+                    sb.AppendLine($"Racha: {Texts.Plural(w.Streak, "día", "días")}.");
+                    if (w.PeakHour is { } h) sb.AppendLine($"Hora punta: de {h}:00 a {h + 1}:00.");
+                    int inbox = data.Tasks.Count(t => t.Day is null && !t.Done);
+                    if (inbox > 0) sb.AppendLine($"En la bandeja: {Texts.Plural(inbox, "tarea", "tareas")}.");
+                    return sb.ToString().TrimEnd();
+                }
             default:
                 throw new UserException($"No existe la herramienta {name}.");
         }
@@ -381,7 +381,11 @@ public sealed class McpTools(Store store, IClock clock)
 
     private static string RepeatName(Repeat r) => r switch
     {
-        Repeat.Daily => "cada día", Repeat.Weekdays => "días laborables", Repeat.Weekly => "cada semana", Repeat.Monthly => "cada mes", _ => "no se repite",
+        Repeat.Daily => "cada día",
+        Repeat.Weekdays => "días laborables",
+        Repeat.Weekly => "cada semana",
+        Repeat.Monthly => "cada mes",
+        _ => "no se repite",
     };
 
     private static string? Str(JsonObject a, string key) => a[key] is JsonValue v && v.TryGetValue<string>(out var s) ? s : null;

@@ -90,6 +90,8 @@ public sealed class Settings
     public List<string> Cards { get; set; } = ["tareas", "foco", "notas", "recortes"];
     public string Hotkey { get; set; } = "Ctrl+Alt+Espacio";
     public int FocusMinutes { get; set; } = 25;
+    /// <summary>El foco sin tarea cuenta hacia arriba en vez de hacia atrás.</summary>
+    public bool Stopwatch { get; set; }
     public bool Sound { get; set; } = true;
     public bool CarryForward { get; set; } = true;
     public bool WeekendsInStreak { get; set; }

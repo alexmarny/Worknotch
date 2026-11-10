@@ -1,0 +1,273 @@
+# Compila, prueba y empaqueta Worknotch en cada pull request.
+# Al subir una etiqueta vX.Y.Z publica además una versión con el instalador de Windows y
+# SHA256SUMS.txt, que es donde la app mira si hay actualizaciones.
+# En los push a main solo corre «nucleo»: todo llega por PR, ya probado entero.
+name: Compilar
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+    paths-ignore: ["**.md"] # las etiquetas no miran las rutas: siempre se publican
+  pull_request:
+    paths-ignore: ["**.md"]
+  workflow_dispatch:
+
+# Un push nuevo a un PR cancela la ejecución anterior de ese PR; main y las etiquetas nunca se cancelan.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_NOLOGO: "1"
+  DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+
+jobs:
+  # Lo que no necesita Windows: el workflow, el núcleo y sus pruebas (tareas, temporizador,
+  # guardado, servidor de Claude y los criterios de diseño que se comprueban sin pintar nada).
+  nucleo:
+    name: Núcleo y pruebas
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      numero: ${{ steps.version.outputs.numero }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # git describe necesita las etiquetas para poner la versión
+
+      # El propio workflow: YAML, expresiones ${{ }}, needs y outputs, entradas de las acciones.
+      # Versión fija y comprobada por su suma. Sin shellcheck (-shellcheck=): el que trae la imagen
+      # cambia con ella y pararía la CI por avisos de estilo en los scripts.
+      - name: Revisar el workflow (actionlint)
+        env:
+          ACTIONLINT: "1.7.12"
+          ACTIONLINT_SHA256: 8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8
+        run: |
+          curl -fsSL -o "$RUNNER_TEMP/actionlint.tar.gz" "https://github.com/rhysd/actionlint/releases/download/v$ACTIONLINT/actionlint_${ACTIONLINT}_linux_amd64.tar.gz"
+          echo "$ACTIONLINT_SHA256  $RUNNER_TEMP/actionlint.tar.gz" | sha256sum -c -
+          tar -xzf "$RUNNER_TEMP/actionlint.tar.gz" -C "$RUNNER_TEMP" actionlint
+          "$RUNNER_TEMP/actionlint" -color -shellcheck= -pyflakes=
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "8.0.x"
+
+      # v1.2.1-3-gabc -> 1.2.1 para los ejecutables y el instalador, que solo admiten números
+      - name: Versión
+        id: version
+        run: |
+          version=$(git describe --tags --always --dirty)
+          numero=$(echo "$version" | sed -n 's/^v\{0,1\}\([0-9]*\.[0-9]*\.[0-9]*\).*/\1/p')
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "numero=${numero:-0.0.0}" >> "$GITHUB_OUTPUT"
+
+      - name: Pruebas del núcleo
+        run: dotnet test tests/Worknotch.Tests --configuration Release
+
+  # La app de verdad, en Windows: formato, compilación sin avisos, la interfaz pintada en los dos
+  # temas con sus criterios (--humo), el instalador, y la app instalada, arrancada y desinstalada.
+  windows:
+    name: App, interfaz e instalador (Windows)
+    needs: nucleo
+    if: github.event_name != 'push' || github.ref_type == 'tag'
+    runs-on: windows-latest
+    timeout-minutes: 25
+    env:
+      NUMERO: ${{ needs.nucleo.outputs.numero }}
+      VERSION: ${{ needs.nucleo.outputs.version }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Formato
+        shell: pwsh
+        run: |
+          dotnet restore
+          dotnet format --verify-no-changes --no-restore
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      # Los avisos son errores (Directory.Build.props). La app y el servidor de Claude van a la misma
+      # carpeta, con .NET dentro: quien la instala no tiene que instalar nada más.
+      - name: Compilar y publicar
+        shell: pwsh
+        run: |
+          $opts = @("--configuration", "Release", "--runtime", "win-x64", "--self-contained", "true", "-p:Version=$env:NUMERO", "-p:InformationalVersion=$env:VERSION", "--output", "dist\app")
+          dotnet publish src\Worknotch.App @opts
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          dotnet publish src\Worknotch.Mcp @opts
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          foreach ($f in "Worknotch.exe", "worknotch-mcp.exe") { if (-not (Test-Path "dist\app\$f")) { throw "Falta $f" } }
+
+      - name: Pruebas de la interfaz (cada vista en Noche y en Día)
+        shell: pwsh
+        run: |
+          $p = Start-Process "dist\app\Worknotch.exe" -ArgumentList "--humo", "$PWD\humo" -Wait -PassThru
+          if (Test-Path humo\humo.log) { Get-Content humo\humo.log -Encoding utf8 }
+          if ($p.ExitCode -ne 0) { throw "La prueba de la interfaz ha salido con $($p.ExitCode)" }
+          $capturas = @(Get-ChildItem humo\*.png)
+          if ($capturas.Count -ne 14) { throw "Tendría que haber 14 capturas y hay $($capturas.Count)" }
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: capturas
+          path: |
+            humo/*.png
+            humo/humo.log
+          retention-days: 7
+          if-no-files-found: warn
+
+      # El servidor de Claude instalado tal cual: un saludo y una tarea por la entrada estándar
+      - name: Servidor de Claude (worknotch-mcp)
+        shell: pwsh
+        run: |
+          $env:WORKNOTCH_DATOS = "$PWD\humo\mcp"
+          $entrada = @(
+            '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18"}}',
+            '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"add_tasks","arguments":{"titles":["Probar la CI"]}}}',
+            '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"list_tasks","arguments":{}}}'
+          ) -join "`n"
+          $salida = $entrada | & dist\app\worknotch-mcp.exe
+          $salida
+          if (@($salida).Count -ne 3) { throw "El servidor tendría que haber contestado tres veces" }
+          if ($salida[2] -notmatch "Probar la CI") { throw "La tarea añadida no sale en la lista" }
+
+      - name: Inno Setup
+        shell: pwsh
+        run: |
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) { choco install innosetup -y --no-progress }
+          if (-not (Test-Path $iscc)) { throw "No encuentro ISCC.exe" }
+          "ISCC=$iscc" >> $env:GITHUB_ENV
+
+      - name: Compilar el instalador
+        shell: pwsh
+        run: |
+          & $env:ISCC "/DAppVersion=$env:NUMERO" "build\instalador.iss"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: instalador
+          path: dist/Worknotch-setup.exe
+          retention-days: 3
+          if-no-files-found: error
+
+      # Al publicar se actualiza como lo hacen los usuarios: encima de la última versión publicada,
+      # que al compilar una etiqueta todavía es la anterior. La primera versión no tiene anterior.
+      - name: Instalar antes la última versión publicada
+        if: github.ref_type == 'tag'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download --repo "$env:GITHUB_REPOSITORY" --pattern "Worknotch-setup.exe" --output anterior.exe
+          if ($LASTEXITCODE -ne 0) { "Todavía no hay ninguna versión publicada: instalación limpia."; exit 0 }
+          $p = Start-Process .\anterior.exe -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART" -Wait -PassThru
+          if ($p.ExitCode -ne 0) { throw "El instalador de la última versión ha salido con $($p.ExitCode)" }
+          $key = Get-ChildItem HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall | Where-Object { $_.GetValue("DisplayName") -eq "Worknotch" }
+          if (-not $key) { throw "La última versión no se ha instalado" }
+          "ANTERIOR=$($key.GetValue('DisplayVersion'))" >> $env:GITHUB_ENV
+
+      - name: Instalar en silencio con el instalador nuevo
+        shell: pwsh
+        run: |
+          $p = Start-Process "dist\Worknotch-setup.exe" -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART" -Wait -PassThru
+          if ($p.ExitCode -ne 0) { throw "El instalador ha salido con $($p.ExitCode)" }
+          $app = "$env:LOCALAPPDATA\Programs\Worknotch"
+          foreach ($f in "Worknotch.exe", "worknotch-mcp.exe", "unins000.exe") { if (-not (Test-Path "$app\$f")) { throw "Falta $f" } }
+          if (-not (Get-ChildItem "$env:APPDATA\Microsoft\Windows\Start Menu\Programs" -Filter "Worknotch.lnk" -Recurse)) { throw "Falta el acceso del menú Inicio" }
+          $claves = @(Get-ChildItem HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall | Where-Object { $_.GetValue("DisplayName") -eq "Worknotch" })
+          if ($claves.Count -ne 1) { throw "Tendría que haber una entrada en Aplicaciones instaladas y hay $($claves.Count)" }
+          "Instalado: Worknotch $($claves[0].GetValue('DisplayVersion'))"
+          if ($claves[0].GetValue("DisplayVersion") -ne $env:NUMERO) { throw "La versión instalada es $($claves[0].GetValue('DisplayVersion')), no la $env:NUMERO" }
+          $orden = (Get-ItemProperty "HKCU:\Software\Classes\worknotch\shell\open\command").'(default)'
+          if ($orden -notmatch "Worknotch.exe") { throw "Los enlaces worknotch:// no abren la app" }
+          if ($env:ANTERIOR) { "Actualizado de la $env:ANTERIOR a la $env:NUMERO" }
+
+      # La app instalada, como la abre quien la usa: tiene que seguir viva, guardar sus datos y
+      # atender un enlace worknotch:// que le pasa una segunda instancia.
+      - name: Arrancar la app instalada y añadirle una tarea con un enlace
+        shell: pwsh
+        run: |
+          $env:WORKNOTCH_DATOS = "$PWD\humo\instalada"
+          $exe = "$env:LOCALAPPDATA\Programs\Worknotch\Worknotch.exe"
+          $app = Start-Process $exe -ArgumentList "--inicio" -PassThru
+          Start-Sleep 6
+          if ($app.HasExited) { throw "La app se ha cerrado al arrancar (código $($app.ExitCode))" }
+          Start-Process $exe -ArgumentList "worknotch://add?title=Desde%20un%20enlace&priority=alta" -Wait
+          Start-Sleep 3
+          if ($app.HasExited) { throw "La app se ha cerrado al recibir el enlace" }
+          $datos = Get-Content "$env:WORKNOTCH_DATOS\datos.json" -Raw -Encoding utf8
+          if ($datos -notmatch "Desde un enlace") { throw "El enlace no ha añadido la tarea" }
+          if (Test-Path "$env:WORKNOTCH_DATOS\errores.log") { Get-Content "$env:WORKNOTCH_DATOS\errores.log"; throw "La app ha apuntado errores" }
+          "La app sigue en marcha y la tarea del enlace está guardada."
+
+      - name: Desinstalar en silencio
+        shell: pwsh
+        run: |
+          $app = "$env:LOCALAPPDATA\Programs\Worknotch"
+          $p = Start-Process "$app\unins000.exe" -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART" -Wait -PassThru
+          if ($p.ExitCode -ne 0) { throw "El desinstalador ha salido con $($p.ExitCode)" }
+          for ($i = 0; $i -lt 20 -and (Test-Path "$app\Worknotch.exe"); $i++) { Start-Sleep 1 }
+          if (Test-Path "$app\Worknotch.exe") { throw "La desinstalación no ha borrado el programa" }
+          if (Get-Process Worknotch -ErrorAction SilentlyContinue) { throw "La app sigue en marcha tras desinstalar" }
+          if (Test-Path "HKCU:\Software\Classes\worknotch") { throw "Quedan registrados los enlaces worknotch://" }
+
+  publicar:
+    name: Publicar versión
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [nucleo, windows]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # para las notas: los commits desde la versión anterior
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: instalador
+          path: publicar
+
+      - name: Sumas SHA-256 y notas
+        run: |
+          (cd publicar && sha256sum Worknotch-setup.exe > SHA256SUMS.txt)
+          cat publicar/SHA256SUMS.txt
+          dl="https://github.com/$GITHUB_REPOSITORY/releases/download/$GITHUB_REF_NAME"
+          prev=$(git describe --tags --abbrev=0 --exclude='*-beta.*' "$GITHUB_REF_NAME^" 2>/dev/null || true)
+          {
+            echo "## Novedades"
+            echo
+            git log --no-merges --pretty='- %s' ${prev:+"$prev.."}"$GITHUB_REF_NAME"
+            echo
+            echo "## Descargar"
+            echo
+            echo "- **Windows:** [Worknotch-setup.exe]($dl/Worknotch-setup.exe). Si ya la tienes instalada no hace falta: al abrirla te avisa y se actualiza con el botón «Actualizar»."
+            echo
+            echo "Instrucciones de instalación: https://github.com/$GITHUB_REPOSITORY#readme"
+          } > notas.md
+          cat notas.md
+
+      # Una beta (vX.Y.Z-beta.N) sale como versión previa y no pasa a ser «la última»: la app
+      # instalada solo mira la última estable.
+      - name: Crear la versión
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TIPO: ${{ contains(github.ref_name, '-') && '--prerelease --latest=false' || '--latest' }}
+        run: >
+          gh release create "$GITHUB_REF_NAME" publicar/*
+          --repo "$GITHUB_REPOSITORY"
+          --title "Worknotch $GITHUB_REF_NAME"
+          --notes-file notas.md
+          $TIPO

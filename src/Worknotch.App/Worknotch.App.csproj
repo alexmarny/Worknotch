@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <!-- Windows Forms solo para el icono del área de notificación -->
+    <UseWindowsForms>true</UseWindowsForms>
+    <AssemblyName>Worknotch</AssemblyName>
+    <RootNamespace>Worknotch.App</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>..\..\build\icono\icono.ico</ApplicationIcon>
+    <!-- Para las llamadas a Windows de Servicios/Nativo.cs (LibraryImport) -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!-- La escala por pantalla va en app.manifest, que es donde la lee WPF; el aviso es de Windows Forms -->
+    <NoWarn>$(NoWarn);WFAC010</NoWarn>
+    <AssemblyTitle>Worknotch: tu día, a un gesto</AssemblyTitle>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Worknotch.Core\Worknotch.Core.csproj" />
+    <!-- Que los tipos de Windows Forms no choquen con los de WPF -->
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
+    <Using Include="System.IO" />
+    <Using Include="Worknotch.Core" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,412 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!-- Los colores («wn-…») los pone Servicios/Tema.cs desde tokens.json: aquí, siempre DynamicResource.
+       Tres tamaños de letra: 12 (datos y ayudas), 14 (lo que se lee) y 18 (el día que se está viendo). -->
+
+  <FontFamily x:Key="Letra">Segoe UI Variable Text, Segoe UI</FontFamily>
+  <FontFamily x:Key="LetraTitulo">Segoe UI Variable Display, Segoe UI</FontFamily>
+
+  <!-- Foco de teclado: un filete ámbar por fuera, igual en todos los controles -->
+  <Style x:Key="Foco">
+    <Setter Property="Control.Template">
+      <Setter.Value>
+        <ControlTemplate>
+          <Rectangle Margin="-2" RadiusX="9" RadiusY="9" StrokeThickness="2" Stroke="{DynamicResource wn-ambar}" SnapsToDevicePixels="True" />
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <Style x:Key="Texto" TargetType="TextBlock">
+    <Setter Property="FontFamily" Value="{StaticResource Letra}" />
+    <Setter Property="FontSize" Value="14" />
+    <Setter Property="Foreground" Value="{DynamicResource wn-texto}" />
+    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+  </Style>
+
+  <Style x:Key="TextoSuave" TargetType="TextBlock" BasedOn="{StaticResource Texto}">
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="Foreground" Value="{DynamicResource wn-texto-suave}" />
+  </Style>
+
+  <Style x:Key="TituloTarjeta" TargetType="TextBlock" BasedOn="{StaticResource Texto}">
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+
+  <!-- Botón de texto: se nota que se pulsa por su fondo, sin pasar el ratón -->
+  <Style x:Key="Boton" TargetType="Button">
+    <Setter Property="FontFamily" Value="{StaticResource Letra}" />
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="Foreground" Value="{DynamicResource wn-texto}" />
+    <Setter Property="Background" Value="{DynamicResource wn-relieve}" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+    <Setter Property="Padding" Value="10,0" />
+    <Setter Property="MinHeight" Value="28" />
+    <Setter Property="MinWidth" Value="28" />
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="FocusVisualStyle" Value="{StaticResource Foco}" />
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="Button">
+          <Border x:Name="Caja" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="8" SnapsToDevicePixels="True">
+            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}" RecognizesAccessKey="False" />
+          </Border>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+              <Setter TargetName="Caja" Property="BorderBrush" Value="{DynamicResource wn-filete}" />
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+              <Setter TargetName="Caja" Property="Opacity" Value="0.75" />
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+              <Setter TargetName="Caja" Property="Opacity" Value="0.45" />
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <!-- La acción principal de una tarjeta: una sola por vista -->
+  <Style x:Key="BotonPrincipal" TargetType="Button" BasedOn="{StaticResource Boton}">
+    <Setter Property="Background" Value="{DynamicResource wn-ambar}" />
+    <Setter Property="Foreground" Value="{DynamicResource wn-sobre-ambar}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Padding" Value="14,0" />
+  </Style>
+
+  <!-- Botón de icono: sin fondo hasta que se pasa por encima; el dibujo va en currentColor -->
+  <Style x:Key="BotonIcono" TargetType="Button" BasedOn="{StaticResource Boton}">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource wn-texto-suave}" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="Width" Value="28" />
+    <Setter Property="Height" Value="28" />
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="Button">
+          <Border x:Name="Caja" Background="{TemplateBinding Background}" CornerRadius="8">
+            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+          </Border>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+              <Setter TargetName="Caja" Property="Background" Value="{DynamicResource wn-relieve}" />
+              <Setter Property="Foreground" Value="{DynamicResource wn-texto}" />
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+              <Setter TargetName="Caja" Property="Opacity" Value="0.4" />
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <Style x:Key="Icono" TargetType="Path">
+    <Setter Property="Stroke" Value="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Control}}" />
+    <Setter Property="StrokeThickness" Value="1.6" />
+    <Setter Property="StrokeStartLineCap" Value="Round" />
+    <Setter Property="StrokeEndLineCap" Value="Round" />
+    <Setter Property="StrokeLineJoin" Value="Round" />
+    <Setter Property="Width" Value="16" />
+    <Setter Property="Height" Value="16" />
+    <Setter Property="Stretch" Value="None" />
+  </Style>
+
+  <!-- Ficha de día: una de un grupo; la elegida va en ámbar -->
+  <Style x:Key="Ficha" TargetType="RadioButton">
+    <Setter Property="FontFamily" Value="{StaticResource Letra}" />
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="Foreground" Value="{DynamicResource wn-texto}" />
+    <Setter Property="Background" Value="{DynamicResource wn-relieve}" />
+    <Setter Property="Margin" Value="0,0,6,0" />
+    <Setter Property="MinHeight" Value="28" />
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="FocusVisualStyle" Value="{StaticResource Foco}" />
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="RadioButton">
+          <Border x:Name="Caja" Background="{TemplateBinding Background}" BorderBrush="Transparent" BorderThickness="1" CornerRadius="14" Padding="12,0">
+            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" RecognizesAccessKey="False" />
+          </Border>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+              <Setter TargetName="Caja" Property="BorderBrush" Value="{DynamicResource wn-filete}" />
+            </Trigger>
+            <Trigger Property="IsChecked" Value="True">
+              <Setter TargetName="Caja" Property="Background" Value="{DynamicResource wn-ambar}" />
+              <Setter Property="Foreground" Value="{DynamicResource wn-sobre-ambar}" />
+              <Setter Property="FontWeight" Value="SemiBold" />
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <!-- Casilla redonda de las tareas y los pasos -->
+  <Style x:Key="Casilla" TargetType="CheckBox">
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="Width" Value="20" />
+    <Setter Property="Height" Value="20" />
+    <Setter Property="FocusVisualStyle" Value="{StaticResource Foco}" />
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="CheckBox">
+          <Grid Background="Transparent">
+            <Ellipse x:Name="Aro" Stroke="{DynamicResource wn-texto-suave}" StrokeThickness="1.5" Fill="Transparent" Margin="1" />
+            <Path x:Name="Marca" Data="M5.5,10.5 L8.8,13.5 L14.5,7" Stroke="{DynamicResource wn-tarjeta}" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" Visibility="Collapsed" />
+          </Grid>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+              <Setter TargetName="Aro" Property="Stroke" Value="{DynamicResource wn-hecho}" />
+            </Trigger>
+            <Trigger Property="IsChecked" Value="True">
+              <Setter TargetName="Aro" Property="Fill" Value="{DynamicResource wn-hecho}" />
+              <Setter TargetName="Aro" Property="Stroke" Value="{DynamicResource wn-hecho}" />
+              <Setter TargetName="Marca" Property="Visibility" Value="Visible" />
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+              <Setter Property="Opacity" Value="0.6" />
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <!-- Interruptor de Ajustes: el texto va a la izquierda y la palanca a la derecha -->
+  <Style x:Key="Interruptor" TargetType="CheckBox">
+    <Setter Property="FontFamily" Value="{StaticResource Letra}" />
+    <Setter Property="FontSize" Value="14" />
+    <Setter Property="Foreground" Value="{DynamicResource wn-texto}" />
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="MinHeight" Value="32" />
+    <Setter Property="FocusVisualStyle" Value="{StaticResource Foco}" />
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="CheckBox">
+          <Grid Background="Transparent">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <ContentPresenter VerticalAlignment="Center" RecognizesAccessKey="False" />
+            <Grid Grid.Column="1" Width="38" Height="22" Margin="12,0,0,0">
+              <Border x:Name="Carril" CornerRadius="11" Background="{DynamicResource wn-relieve}" BorderBrush="{DynamicResource wn-filete}" BorderThickness="1" />
+              <Ellipse x:Name="Palanca" Width="14" Height="14" Fill="{DynamicResource wn-texto-suave}" HorizontalAlignment="Left" Margin="4,0" />
+            </Grid>
+          </Grid>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsChecked" Value="True">
+              <Setter TargetName="Carril" Property="Background" Value="{DynamicResource wn-ambar}" />
+              <Setter TargetName="Carril" Property="BorderBrush" Value="{DynamicResource wn-ambar}" />
+              <Setter TargetName="Palanca" Property="Fill" Value="{DynamicResource wn-sobre-ambar}" />
+              <Setter TargetName="Palanca" Property="HorizontalAlignment" Value="Right" />
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <!-- Campo de texto. La ayuda («Añadir tarea…») va en Tag y se ve mientras está vacío -->
+  <Style x:Key="Campo" TargetType="TextBox">
+    <Setter Property="FontFamily" Value="{StaticResource Letra}" />
+    <Setter Property="FontSize" Value="14" />
+    <Setter Property="Foreground" Value="{DynamicResource wn-texto}" />
+    <Setter Property="Background" Value="{DynamicResource wn-relieve}" />
+    <Setter Property="CaretBrush" Value="{DynamicResource wn-ambar}" />
+    <Setter Property="SelectionBrush" Value="{DynamicResource wn-ambar}" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+    <Setter Property="Padding" Value="10,6" />
+    <Setter Property="MinHeight" Value="32" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="TextBox">
+          <Border x:Name="Caja" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1.5" CornerRadius="8" SnapsToDevicePixels="True">
+            <Grid>
+              <TextBlock x:Name="Ayuda" Text="{TemplateBinding Tag}" Margin="{TemplateBinding Padding}" Padding="2,0" FontSize="{TemplateBinding FontSize}"
+                         Foreground="{DynamicResource wn-texto-suave}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" IsHitTestVisible="False" Visibility="Collapsed" TextTrimming="CharacterEllipsis" />
+              <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" Focusable="False"
+                            HorizontalScrollBarVisibility="{TemplateBinding HorizontalScrollBarVisibility}" VerticalScrollBarVisibility="{TemplateBinding VerticalScrollBarVisibility}" />
+            </Grid>
+          </Border>
+          <ControlTemplate.Triggers>
+            <Trigger Property="Text" Value="">
+              <Setter TargetName="Ayuda" Property="Visibility" Value="Visible" />
+            </Trigger>
+            <Trigger Property="IsKeyboardFocused" Value="True">
+              <Setter TargetName="Caja" Property="BorderBrush" Value="{DynamicResource wn-ambar}" />
+            </Trigger>
+            <Trigger Property="IsReadOnly" Value="True">
+              <Setter TargetName="Caja" Property="Opacity" Value="0.7" />
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <!-- Barra de desplazamiento fina -->
+  <Style x:Key="BarraPulgar" TargetType="Thumb">
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="Thumb">
+          <Border CornerRadius="3" Background="{DynamicResource wn-filete}" />
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <Style x:Key="BarraHueco" TargetType="RepeatButton">
+    <Setter Property="Focusable" Value="False" />
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="RepeatButton">
+          <Border Background="Transparent" />
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <Style TargetType="ScrollBar">
+    <Setter Property="Width" Value="6" />
+    <Setter Property="MinWidth" Value="6" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="ScrollBar">
+          <Track x:Name="PART_Track" IsDirectionReversed="True">
+            <Track.DecreaseRepeatButton>
+              <RepeatButton Command="ScrollBar.PageUpCommand" Style="{StaticResource BarraHueco}" />
+            </Track.DecreaseRepeatButton>
+            <Track.Thumb>
+              <Thumb Style="{StaticResource BarraPulgar}" />
+            </Track.Thumb>
+            <Track.IncreaseRepeatButton>
+              <RepeatButton Command="ScrollBar.PageDownCommand" Style="{StaticResource BarraHueco}" />
+            </Track.IncreaseRepeatButton>
+          </Track>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+    <Style.Triggers>
+      <Trigger Property="Orientation" Value="Horizontal">
+        <Setter Property="Width" Value="Auto" />
+        <Setter Property="MinWidth" Value="0" />
+        <Setter Property="Height" Value="6" />
+        <Setter Property="MinHeight" Value="6" />
+        <Setter Property="Template">
+          <Setter.Value>
+            <ControlTemplate TargetType="ScrollBar">
+              <Track x:Name="PART_Track">
+                <Track.DecreaseRepeatButton>
+                  <RepeatButton Command="ScrollBar.PageLeftCommand" Style="{StaticResource BarraHueco}" />
+                </Track.DecreaseRepeatButton>
+                <Track.Thumb>
+                  <Thumb Style="{StaticResource BarraPulgar}" />
+                </Track.Thumb>
+                <Track.IncreaseRepeatButton>
+                  <RepeatButton Command="ScrollBar.PageRightCommand" Style="{StaticResource BarraHueco}" />
+                </Track.IncreaseRepeatButton>
+              </Track>
+            </ControlTemplate>
+          </Setter.Value>
+        </Setter>
+      </Trigger>
+    </Style.Triggers>
+  </Style>
+
+  <!-- Menú de una tarea (clic derecho o el botón de los tres puntos) -->
+  <Style TargetType="ContextMenu">
+    <Setter Property="FontFamily" Value="{StaticResource Letra}" />
+    <Setter Property="FontSize" Value="14" />
+    <Setter Property="Foreground" Value="{DynamicResource wn-texto}" />
+    <Setter Property="HasDropShadow" Value="False" />
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="ContextMenu">
+          <Border Background="{DynamicResource wn-tarjeta}" BorderBrush="{DynamicResource wn-filete}" BorderThickness="1" CornerRadius="10" Padding="4" MinWidth="200">
+            <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle" />
+          </Border>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <Style TargetType="MenuItem">
+    <Setter Property="Foreground" Value="{DynamicResource wn-texto}" />
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="MenuItem">
+          <Border x:Name="Caja" Background="Transparent" CornerRadius="6" Padding="10,6" MinHeight="30">
+            <ContentPresenter ContentSource="Header" VerticalAlignment="Center" RecognizesAccessKey="False" />
+          </Border>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsHighlighted" Value="True">
+              <Setter TargetName="Caja" Property="Background" Value="{DynamicResource wn-relieve}" />
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+              <Setter TargetName="Caja" Property="Opacity" Value="0.45" />
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <Style TargetType="Separator">
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="Separator">
+          <Border Height="1" Margin="8,4" Background="{DynamicResource wn-filete}" />
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <Style TargetType="ToolTip">
+    <Setter Property="FontFamily" Value="{StaticResource Letra}" />
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="Foreground" Value="{DynamicResource wn-texto}" />
+    <Setter Property="HasDropShadow" Value="False" />
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="ToolTip">
+          <Border Background="{DynamicResource wn-relieve}" BorderBrush="{DynamicResource wn-filete}" BorderThickness="1" CornerRadius="6" Padding="8,4">
+            <ContentPresenter />
+          </Border>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <!-- El título de una fila de tarea: se pulsa para abrir su detalle; el fondo lo pone la fila -->
+  <Style x:Key="BotonFila" TargetType="Button">
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="FocusVisualStyle" Value="{StaticResource Foco}" />
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="Button">
+          <Border Background="Transparent" Padding="{TemplateBinding Padding}">
+            <ContentPresenter HorizontalAlignment="Stretch" VerticalAlignment="Center" RecognizesAccessKey="False" />
+          </Border>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <!-- Tarjeta dentro del panel -->
+  <Style x:Key="Tarjeta" TargetType="Border">
+    <Setter Property="Background" Value="{DynamicResource wn-tarjeta}" />
+    <Setter Property="CornerRadius" Value="14" />
+    <Setter Property="Padding" Value="14,12,14,14" />
+    <Setter Property="Margin" Value="0,0,10,0" />
+  </Style>
+</ResourceDictionary>

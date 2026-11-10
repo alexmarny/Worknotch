@@ -113,8 +113,14 @@ public class McpTests : IDisposable
         string id = IdOf("Viaje");
         var (text, err) = Call("update_task", new JsonObject
         {
-            ["id"] = id, ["title"] = "Viaje a Lisboa", ["remind_at"] = "17:30", ["repeat"] = "semanal", ["minutes"] = 50,
-            ["steps"] = new JsonArray("Vuelos", "Hotel"), ["done_steps"] = new JsonArray("vuelos"), ["deadline"] = "2026-12-01",
+            ["id"] = id,
+            ["title"] = "Viaje a Lisboa",
+            ["remind_at"] = "17:30",
+            ["repeat"] = "semanal",
+            ["minutes"] = 50,
+            ["steps"] = new JsonArray("Vuelos", "Hotel"),
+            ["done_steps"] = new JsonArray("vuelos"),
+            ["deadline"] = "2026-12-01",
         });
         Assert.False(err, text);
         var t = _tmp.Store.Read().Tasks.Single();
