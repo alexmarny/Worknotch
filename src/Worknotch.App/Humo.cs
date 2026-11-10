@@ -194,7 +194,7 @@ internal static class Smoke
                 case TextBox box when box.FontSize < 12:
                     problems.Add($"El campo «{box.Tag}» va a {box.FontSize} px: nada visible baja de 12");
                     break;
-                case ButtonBase button:
+                case ButtonBase button when button is not RepeatButton: // las de las barras de desplazamiento no cuentan
                     if (!HasName(button)) problems.Add($"Un botón ({button.Name}) no tiene texto ni nombre para lectores de pantalla");
                     if (button.ActualWidth < 20 || button.ActualHeight < 20) problems.Add($"El botón «{NameOf(button)}» mide {button.ActualWidth:0} × {button.ActualHeight:0}: demasiado pequeño para pulsarlo");
                     break;

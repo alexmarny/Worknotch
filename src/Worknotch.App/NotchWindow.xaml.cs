@@ -172,6 +172,12 @@ public partial class NotchWindow : Window
         if (_mode == Mode.Panel && !Instant) { _leave.Stop(); _leave.Start(); }
     }
 
+    // Al arrastrar algo hacia la pastilla se abre el panel, para poder soltarlo en Recortes
+    private void Shell_DragEnter(object sender, DragEventArgs e)
+    {
+        if (_mode == Mode.Pill && !Instant) Open(pinned: true);
+    }
+
     private void Pill_Click(object sender, RoutedEventArgs e) => Open(pinned: true);
 
     private void OnPreviewKeyDown(object sender, KeyEventArgs e)
@@ -239,7 +245,7 @@ public partial class NotchWindow : Window
         foreach (FrameworkElement card in Cards.Children)
             if (card.Visibility == Visibility.Visible) cards += card.Width + 10;
         // márgenes del panel (14 + 4) más el hueco que deja la última tarjeta
-        return Math.Clamp(cards + 18, 560, _maxPanelWidth);
+        return Math.Clamp(cards + 18, Math.Min(760, _maxPanelWidth), _maxPanelWidth); // los días de arriba necesitan su sitio
     }
 
     // ---------- Datos ----------

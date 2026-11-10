@@ -109,6 +109,8 @@ jobs:
       - name: Pruebas de la interfaz (cada vista en Noche y en Día)
         shell: pwsh
         run: |
+          # La pantalla del runner es de 1024 × 768: se pone como la de un portátil normal
+          try { Set-DisplayResolution -Width 1920 -Height 1080 -Force } catch { "No se ha podido cambiar la resolución: $_" }
           $p = Start-Process "dist\app\Worknotch.exe" -ArgumentList "--humo", "$PWD\humo" -Wait -PassThru
           if (Test-Path humo\humo.log) { Get-Content humo\humo.log -Encoding utf8 }
           if ($p.ExitCode -ne 0) { throw "La prueba de la interfaz ha salido con $($p.ExitCode)" }

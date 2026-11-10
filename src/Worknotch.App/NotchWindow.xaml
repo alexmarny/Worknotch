@@ -164,7 +164,8 @@
     <!-- El notch: negro en Noche, sale del borde de arriba. Solo él cambia de tamaño. -->
     <Border x:Name="Shell" HorizontalAlignment="Center" VerticalAlignment="Top" Width="240" Height="30"
             Background="{DynamicResource wn-notch}" BorderBrush="{DynamicResource wn-filete}" BorderThickness="1,0,1,1"
-            CornerRadius="0,0,18,18" ClipToBounds="True" MouseEnter="Shell_MouseEnter" MouseLeave="Shell_MouseLeave">
+            CornerRadius="0,0,18,18" ClipToBounds="True" MouseEnter="Shell_MouseEnter" MouseLeave="Shell_MouseLeave"
+            AllowDrop="True" DragEnter="Shell_DragEnter">
       <Grid>
 
         <!-- Pastilla: lo siguiente del día, o el temporizador en marcha -->
@@ -246,9 +247,11 @@
                         <ItemsControl x:Name="TaskList" ItemTemplate="{StaticResource FilaTarea}" Focusable="False" />
                       </StackPanel>
                     </ScrollViewer>
-                    <TextBox x:Name="AddBox" Grid.Row="2" Style="{StaticResource Campo}" Tag="Añadir tarea…" Margin="0,10,0,0" KeyDown="AddBox_KeyDown" MaxLength="300"
-                             ToolTip="Puedes escribir el día, la hora, !alta o #proyecto: «Llamar a Marta mañana 17:30 !alta #Casa»" AutomationProperties.Name="Añadir tarea" />
-                    <TextBlock x:Name="AddError" Grid.Row="2" Style="{StaticResource TextoSuave}" Foreground="{DynamicResource wn-alta}" VerticalAlignment="Top" Margin="2,-8,0,0" Visibility="Collapsed" />
+                    <StackPanel Grid.Row="2" Margin="0,10,0,0">
+                      <TextBlock x:Name="AddError" Style="{StaticResource TextoSuave}" Foreground="{DynamicResource wn-alta}" TextWrapping="Wrap" Margin="2,0,0,6" Visibility="Collapsed" />
+                      <TextBox x:Name="AddBox" Style="{StaticResource Campo}" Tag="Añadir tarea…" KeyDown="AddBox_KeyDown" MaxLength="300"
+                               ToolTip="Puedes escribir el día, la hora, !alta o #proyecto: «Llamar a Marta mañana 17:30 !alta #Casa»" AutomationProperties.Name="Añadir tarea" />
+                    </StackPanel>
                   </Grid>
 
                   <!-- Detalle de una tarea -->
