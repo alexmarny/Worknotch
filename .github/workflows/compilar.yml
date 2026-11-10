@@ -115,7 +115,7 @@ jobs:
           if (Test-Path humo\humo.log) { Get-Content humo\humo.log -Encoding utf8 }
           if ($p.ExitCode -ne 0) { throw "La prueba de la interfaz ha salido con $($p.ExitCode)" }
           $capturas = @(Get-ChildItem humo\*.png)
-          if ($capturas.Count -ne 16) { throw "Tendría que haber 16 capturas y hay $($capturas.Count)" }
+          if ($capturas.Count -ne 22) { throw "Tendría que haber 22 capturas y hay $($capturas.Count)" }
 
       - uses: actions/upload-artifact@v7
         if: always()
