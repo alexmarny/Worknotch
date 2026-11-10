@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyName>worknotch-mcp</AssemblyName>
+    <RootNamespace>Worknotch.Mcp</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Worknotch.Core\Worknotch.Core.csproj" />
+  </ItemGroup>
+</Project>

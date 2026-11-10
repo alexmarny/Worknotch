@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>Worknotch.Core</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- La fuente de los colores: la leen la app y las pruebas -->
+    <EmbeddedResource Include="..\..\docs\design-system\tokens.json" LogicalName="tokens.json" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,6 @@
+* text=auto eol=lf
+# El script del instalador (Inno Setup) va en UTF-8 con BOM y CRLF: que git no lo toque
+*.iss -text
+*.ico binary
+*.png binary
+*.wav binary
