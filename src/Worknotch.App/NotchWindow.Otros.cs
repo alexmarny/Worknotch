@@ -13,7 +13,7 @@ public sealed record AlertInfo(string Title, string Text, IReadOnlyList<AlertAct
 // Notas, recortes, semana, ajustes y avisos.
 public partial class NotchWindow
 {
-    private static readonly string[] CardOrder = ["tareas", "foco", "notas", "recortes", "semana"];
+    private static readonly string[] CardOrder = ["tareas", "foco", "notas", "recortes", "progreso"];
     private readonly Queue<AlertInfo> _alerts = new();
     private bool _settingNotes;
     private Point? _dragStart;
@@ -152,9 +152,9 @@ public partial class NotchWindow
         e.Handled = true;
     }
 
-    // ---------- Semana ----------
+    // ---------- Progreso ----------
 
-    private void RenderWeek()
+    private void RenderProgress()
     {
         var w = Stats.Week(_data, _clock.Now);
         const double max = 80;
@@ -183,10 +183,14 @@ public partial class NotchWindow
         CardFocus.Visibility = Shown("foco");
         CardNotes.Visibility = Shown("notas");
         CardClips.Visibility = Shown("recortes");
-        CardWeek.Visibility = Shown("semana");
-        CardsScroll.Visibility = _settingsOpen ? Visibility.Collapsed : Visibility.Visible;
+        CardProgress.Visibility = Shown("progreso");
+        CardsScroll.Visibility = _settingsOpen || _weekView ? Visibility.Collapsed : Visibility.Visible;
+        WeekView.Visibility = _weekView && !_settingsOpen ? Visibility.Visible : Visibility.Collapsed;
         SettingsView.Visibility = _settingsOpen ? Visibility.Visible : Visibility.Collapsed;
-        Days.Visibility = _settingsOpen ? Visibility.Hidden : Visibility.Visible;
+        Days.Visibility = _settingsOpen || _weekView ? Visibility.Hidden : Visibility.Visible;
+        ViewDay.Visibility = ViewWeek.Visibility = _settingsOpen ? Visibility.Collapsed : Visibility.Visible;
+        ViewDay.IsChecked = !_weekView;
+        ViewWeek.IsChecked = _weekView;
 
         UpdateButton.Visibility = _updater.Available ? Visibility.Visible : Visibility.Collapsed;
         if (_updater.Available && UpdateButton.IsEnabled) UpdateButton.Content = $"Actualizar a la {_updater.Latest!.TrimStart('v')}";
@@ -204,7 +208,7 @@ public partial class NotchWindow
         ShowFocus.IsChecked = s.Cards.Contains("foco");
         ShowNotes.IsChecked = s.Cards.Contains("notas");
         ShowClips.IsChecked = s.Cards.Contains("recortes");
-        ShowWeek.IsChecked = s.Cards.Contains("semana");
+        ShowProgress.IsChecked = s.Cards.Contains("progreso");
         OptClipboard.IsChecked = s.CatchClipboard;
         OptScreenshots.IsChecked = s.CatchScreenshots;
         OptAutostart.IsChecked = Autostart.Enabled;

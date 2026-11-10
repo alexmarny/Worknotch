@@ -31,7 +31,7 @@ public partial class NotchWindow : Window
 
     private AppData _data;
     private Mode _mode = Mode.Pill;
-    private bool _pinned, _settingsOpen, _hiddenForFullscreen, _placing;
+    private bool _pinned, _settingsOpen, _weekView, _showDone, _hiddenForFullscreen, _placing;
     private int _menusOpen;
     private DateOnly? _day; // el día que se está viendo; vacío es la bandeja
     private DateOnly _today;
@@ -53,6 +53,8 @@ public partial class NotchWindow : Window
         _today = DateOnly.FromDateTime(clock.Now);
         _day = _today;
         InitializeComponent();
+        // Dentro de una tarjeta de color el texto va en tinta: mismos estilos, otros valores de los tokens
+        foreach (var card in new[] { CardTasks, CardFocus, CardNotes, CardClips, CardProgress }) card.Resources.MergedDictionaries.Add(Theme.CardScope);
 
         _tick.Tick += (_, _) => Tick();
         _leave.Tick += (_, _) => { _leave.Stop(); CloseIfLeft(); };
@@ -241,6 +243,7 @@ public partial class NotchWindow : Window
     private double PanelWidth()
     {
         if (_settingsOpen) return Math.Min(_maxPanelWidth, 1000);
+        if (_weekView) return Math.Min(_maxPanelWidth, WeekDays * 246 + 246 + 18);
         double cards = 0;
         foreach (FrameworkElement card in Cards.Children)
             if (card.Visibility == Visibility.Visible) cards += card.Width + 10;
@@ -263,7 +266,8 @@ public partial class NotchWindow : Window
         RenderFocus();
         RenderNotes();
         RenderClips();
-        RenderWeek();
+        RenderProgress();
+        RenderWeekView();
         RenderPill();
         UndoButton.IsEnabled = _store.CanUndo;
         if (_mode == Mode.Panel && Math.Abs(PanelWidth() - Shell.Width) > 0.5) ApplyMode(animate: false);

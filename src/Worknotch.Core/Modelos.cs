@@ -86,7 +86,7 @@ public sealed class Settings
 {
     public ThemeChoice Theme { get; set; } = ThemeChoice.System;
     public ScreenChoice Screen { get; set; } = ScreenChoice.Pointer;
-    /// <summary>Tarjetas visibles, en orden: tareas, foco, notas, recortes, semana.</summary>
+    /// <summary>Tarjetas visibles, en orden: tareas, foco, notas, recortes, progreso.</summary>
     public List<string> Cards { get; set; } = ["tareas", "foco", "notas", "recortes"];
     public string Hotkey { get; set; } = "Ctrl+Alt+Espacio";
     public int FocusMinutes { get; set; } = 25;

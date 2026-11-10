@@ -136,6 +136,7 @@ public sealed class Store
         d.Clips ??= [];
         d.Settings ??= new Settings();
         d.Settings.Cards ??= [];
+        d.Settings.Cards = d.Settings.Cards.Select(c => c == "semana" ? "progreso" : c).ToList(); // la tarjeta cambió de nombre
         if (d.Settings.Cards.Count == 0) d.Settings.Cards.Add("tareas");
         foreach (var t in d.Tasks) { t.Steps ??= []; t.Notes ??= ""; }
         return d;

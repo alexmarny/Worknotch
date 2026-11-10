@@ -11,6 +11,38 @@ public class DisenoTests
         Assert.NotEmpty(T.Night);
         Assert.Equal(T.Night.Keys.Order(), T.Day.Keys.Order());
         Assert.All(T.Night.Values.Concat(T.Day.Values), v => Assert.Matches("^#[0-9A-F]{6}$", v));
+        Assert.Equal(T.CardsNight.Keys.Order(), T.CardsDay.Keys.Order());
+        Assert.Equal(T.InCardNight.Keys.Order(), T.InCardDay.Keys.Order());
+        // Lo que cambia dentro de una tarjeta de color tiene que existir también fuera
+        Assert.All(T.InCardNight.Keys, k => Assert.Contains(k, T.Night.Keys));
+    }
+
+    [Fact]
+    public void LaTintaContrastaSobreCadaTarjetaDeColorYSobreSuHueco()
+    {
+        var failures = new List<string>();
+        foreach (var (theme, cards, ink) in new[] { ("Noche", T.CardsNight, T.InCardNight), ("Día", T.CardsDay, T.InCardDay) })
+            foreach (var (card, color) in cards)
+            {
+                string hollow = Tokens.Over(ink["wn-relieve"], color);
+                foreach (string text in new[] { "wn-texto", "wn-texto-suave", "wn-alta", "wn-media", "wn-hecho" })
+                    foreach (var (where, background) in new[] { (card, color), (card + " con hueco", hollow) })
+                    {
+                        double c = Tokens.Contrast(ink[text], background);
+                        if (c < 4.5) failures.Add($"{text} sobre {where} en {theme}: {c:0.00}");
+                    }
+                double button = Tokens.Contrast(ink["wn-sobre-ambar"], ink["wn-ambar"]);
+                if (button < 4.5) failures.Add($"El botón de tinta en {theme}: {button:0.00}");
+                if (Tokens.Contrast(Tokens.Over(ink["wn-filete"], color), color) < 1.5) failures.Add($"El filete no se ve sobre {card} en {theme}");
+            }
+        Assert.True(failures.Count == 0, string.Join("\n", failures));
+    }
+
+    [Fact]
+    public void UnColorTranslucidoSeMezclaConSuFondo()
+    {
+        Assert.Equal("#7F7F7F", Tokens.Over("#80000000", "#FFFFFF"));
+        Assert.Equal("#102030", Tokens.Over("#FF102030", "#FFFFFF"));
     }
 
     [Fact]
@@ -79,7 +111,8 @@ public partial class FuentesTests
     [Fact]
     public void LosTokensQueUsaElXamlExisten()
     {
-        var tokens = Tokens.Parse(TokensFile.Read()).Night.Keys.ToHashSet();
+        var all = Tokens.Parse(TokensFile.Read());
+        var tokens = all.Night.Keys.Concat(all.CardsNight.Keys).ToHashSet();
         var missing = Files("*.xaml")
             .SelectMany(f => UsedToken().Matches(f.Text).Select(m => (f.Name, Token: m.Groups[1].Value)))
             .Where(u => !tokens.Contains(u.Token))

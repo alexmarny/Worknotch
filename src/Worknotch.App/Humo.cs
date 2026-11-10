@@ -41,8 +41,7 @@ internal static class Smoke
             foreach (var (theme, name) in new[] { (ThemeChoice.Night, "noche"), (ThemeChoice.Day, "dia") })
             {
                 Theme.Apply(theme);
-                var colors = Tokens.Parse(TokensFile.Read());
-                var allowed = (theme == ThemeChoice.Day ? colors.Day : colors.Night).Values.Select(Tokens.Rgb).ToHashSet();
+                var allowed = Theme.TextColors();
                 var window = new NotchWindow(store, clock) { Instant = true };
                 window.Show();
 
@@ -64,6 +63,9 @@ internal static class Smoke
                 window.OpenTask(detailId);
                 Shot("3-detalle");
                 window.OpenTask(null);
+                window.ShowWeek(true);
+                Shot("3b-semana");
+                window.ShowWeek(false);
                 window.OpenSettings();
                 Shot("4-ajustes");
                 window.OpenSettings(open: false);
@@ -71,7 +73,7 @@ internal static class Smoke
                 // Todas las tarjetas a la vez, con el temporizador en marcha
                 store.Mutate(d =>
                 {
-                    d.Settings.Cards = ["tareas", "foco", "notas", "recortes", "semana"];
+                    d.Settings.Cards = ["tareas", "foco", "notas", "recortes", "progreso"];
                     FocusTimer.Start(d, detailId, null, TimerMode.Countdown, clock.Now.AddMinutes(-7).AddSeconds(-13));
                 });
                 window.Refresh();

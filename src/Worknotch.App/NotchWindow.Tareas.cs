@@ -63,17 +63,24 @@ public partial class NotchWindow
     {
         var now = _clock.Now;
         bool past = _day is { } d && d < _today;
-        var tasks = Planner.ForDay(_data, _day, now);
+        var all = Planner.ForDay(_data, _day, now);
+        int done = all.Count(t => t.Done), todo = all.Count - done;
+        if (done == 0) _showDone = false;
+        var tasks = all.Where(t => t.Done == _showDone).ToList();
         TaskList.ItemsSource = tasks.Select(t => TaskRow.From(t, _data, now, canEdit: !past)).ToList();
+        TabTodo.Content = $"Por hacer {todo}";
+        TabDone.Content = $"Hechas {done}";
+        TabTodo.IsChecked = !_showDone;
+        TabDone.IsChecked = _showDone;
+        TabDone.Visibility = done > 0 ? Visibility.Visible : Visibility.Collapsed;
+        TabTodo.Visibility = all.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
 
         DayTitle.Text = _day is { } day
             ? (Math.Abs(day.DayNumber - _today.DayNumber) <= 1 ? Planner.DayName(day, _today) : Capital(day.ToString("dddd d 'de' MMMM", Texts.Culture)))
             : "Bandeja";
-        int done = tasks.Count(t => t.Done);
-        DayCount.Text = tasks.Count == 0 ? "" : done == 0 ? $"{tasks.Count} por hacer" : $"{done} de {tasks.Count} hechas";
-
         TasksEmpty.Visibility = tasks.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
-        TasksEmpty.Text = _day is null ? "La bandeja está vacía. Lo que añadas aquí espera sin día."
+        TasksEmpty.Text = all.Count > 0 ? "Todo hecho. No queda nada por hacer aquí."
+            : _day is null ? "La bandeja está vacía. Lo que añadas aquí espera sin día."
             : past ? "Ese día no quedó ninguna tarea apuntada."
             : _day == _today ? "Nada para hoy. Escribe abajo tu primera tarea."
             : "Nada planificado. Lo que añadas aquí te esperará ese día.";
@@ -89,6 +96,51 @@ public partial class NotchWindow
         string? error = Do((d, now) => Planner.AddFromLine(d, line, _day, now), undoable: true);
         if (error == null) AddBox.Clear();
         else { AddError.Text = error; AddError.Visibility = Visibility.Visible; }
+    }
+
+    private void TaskTab_Click(object sender, RoutedEventArgs e)
+    {
+        _showDone = sender == TabDone;
+        RenderTasks();
+    }
+
+    // ---------- Semana: una columna por día ----------
+
+    private const int WeekDays = 4;
+
+    private void RenderWeekView()
+    {
+        if (!_weekView) { WeekColumns.ItemsSource = null; return; }
+        var now = _clock.Now;
+        var columns = new List<WeekColumn>();
+        foreach (DateOnly? day in new DateOnly?[] { null }.Concat(Enumerable.Range(0, WeekDays).Select(i => (DateOnly?)_today.AddDays(i))))
+        {
+            var rows = Planner.ForDay(_data, day, now).Where(t => !t.Done).Select(t => TaskRow.From(t, _data, now, canEdit: true)).ToList();
+            string title = day is { } d && d.DayNumber - _today.DayNumber > 1 ? Capital(d.ToString("dddd d", Texts.Culture)) : Planner.DayName(day, _today);
+            columns.Add(new WeekColumn(title, rows.Count > 0 ? rows.Count.ToString() : "", day, day == _today, rows));
+        }
+        WeekColumns.ItemsSource = columns;
+    }
+
+    private void View_Click(object sender, RoutedEventArgs e) => ShowWeek(sender == ViewWeek);
+
+    internal void ShowWeek(bool week)
+    {
+        _weekView = week;
+        _detailId = null;
+        Refresh();
+        ApplyMode(animate: false);
+    }
+
+    private void WeekAdd_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Enter) return;
+        e.Handled = true;
+        var box = (TextBox)sender;
+        if (box.Text.Trim().Length == 0 || box.DataContext is not WeekColumn column) return;
+        string line = box.Text;
+        string? error = Do((d, now) => Planner.AddFromLine(d, line, column.Day, now), undoable: true);
+        if (error != null) ShowAlert(new AlertInfo("No se ha podido añadir la tarea", error, [new AlertAction("Vale", () => { }, true)]));
     }
 
     private void HideAddError() => AddError.Visibility = Visibility.Collapsed;
@@ -112,6 +164,16 @@ public partial class NotchWindow
     {
         _detailId = IdOf(sender);
         DetailError.Visibility = Visibility.Collapsed;
+        if (_weekView && _data.Tasks.FirstOrDefault(t => t.Id == _detailId) is { } task)
+        {
+            // El detalle está en la tarjeta de Tareas: se pasa a la vista de día, en el día de la tarea
+            _weekView = false;
+            _day = task.Day;
+            if (!_data.Settings.Cards.Contains("tareas")) _store.Mutate(d => d.Settings.Cards.Insert(0, "tareas"));
+            Refresh();
+            ApplyMode(animate: false);
+            return;
+        }
         RenderDetail();
     }
 
@@ -126,7 +188,7 @@ public partial class NotchWindow
     private void OpenTaskMenu(string id, UIElement target)
     {
         var task = _data.Tasks.FirstOrDefault(t => t.Id == id);
-        if (task == null || (_day is { } d && d < _today)) return;
+        if (task == null || (!_weekView && _day is { } d && d < _today)) return;
         var menu = NewMenu(target);
         var tomorrow = _today.AddDays(1);
         if (task.Done)

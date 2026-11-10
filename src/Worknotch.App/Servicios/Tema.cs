@@ -14,17 +14,32 @@ internal static class Theme
 
     public static bool IsDay { get; private set; }
 
+    /// <summary>
+    /// Los tokens que cambian dentro de una tarjeta de color: cada tarjeta lo lleva en sus recursos, y
+    /// así los mismos estilos (texto, campos, casillas) salen en tinta sin tocarlos.
+    /// </summary>
+    public static ResourceDictionary CardScope { get; } = [];
+
     public static void Apply(ThemeChoice choice)
     {
         IsDay = choice == ThemeChoice.Day || (choice == ThemeChoice.System && SystemIsLight());
         var resources = Application.Current.Resources;
-        foreach (var (name, hex) in IsDay ? All.Day : All.Night)
-        {
-            var (r, g, b) = Tokens.Rgb(hex);
-            var brush = new SolidColorBrush(Color.FromRgb(r, g, b));
-            brush.Freeze();
-            resources[name] = brush;
-        }
+        foreach (var (name, hex) in IsDay ? All.Day : All.Night) resources[name] = Brush(hex);
+        foreach (var (name, hex) in IsDay ? All.CardsDay : All.CardsNight) resources[name] = Brush(hex);
+        foreach (var (name, hex) in IsDay ? All.InCardDay : All.InCardNight) CardScope[name] = Brush(hex);
+    }
+
+    /// <summary>Todos los colores opacos que puede llevar un texto en el tema puesto (para la prueba de humo).</summary>
+    public static HashSet<(byte, byte, byte)> TextColors() =>
+        (IsDay ? All.Day.Values.Concat(All.InCardDay.Values) : All.Night.Values.Concat(All.InCardNight.Values))
+            .Where(hex => hex.Length == 7).Select(Tokens.Rgb).ToHashSet();
+
+    private static SolidColorBrush Brush(string hex)
+    {
+        var (a, r, g, b) = Tokens.Argb(hex);
+        var brush = new SolidColorBrush(Color.FromArgb(a, r, g, b));
+        brush.Freeze();
+        return brush;
     }
 
     private static bool SystemIsLight()

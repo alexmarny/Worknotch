@@ -82,3 +82,9 @@ public sealed class ClipRow
 }
 
 public sealed record DayBar(string Label, double TasksHeight, double FocusHeight, string Tip, bool IsToday);
+
+/// <summary>Una columna de la vista Semana: la bandeja o un día.</summary>
+public sealed record WeekColumn(string Title, string Count, DateOnly? Day, bool IsToday, List<TaskRow> Rows)
+{
+    public string AddName => $"Añadir tarea a {Title.ToLower(Texts.Culture)}";
+}

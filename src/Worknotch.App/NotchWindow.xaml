@@ -15,6 +15,7 @@
       <DataTemplate.Triggers>
         <DataTrigger Binding="{Binding Kind}" Value="Accent">
           <Setter TargetName="T" Property="Foreground" Value="{DynamicResource wn-ambar}" />
+          <Setter TargetName="T" Property="FontWeight" Value="SemiBold" />
         </DataTrigger>
         <DataTrigger Binding="{Binding Kind}" Value="Alert">
           <Setter TargetName="T" Property="Foreground" Value="{DynamicResource wn-alta}" />
@@ -137,6 +138,33 @@
       </DataTemplate.Triggers>
     </DataTemplate>
 
+    <!-- Una columna de la vista Semana -->
+    <DataTemplate x:Key="ColumnaSemana">
+      <Border x:Name="Columna" Style="{StaticResource Tarjeta}" Width="236" BorderThickness="1.5" BorderBrush="Transparent" Padding="12,10,8,12">
+        <Grid>
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+          </Grid.RowDefinitions>
+          <Grid Margin="2,0,6,6">
+            <TextBlock x:Name="Titulo" Text="{Binding Title}" Style="{StaticResource TituloTarjeta}" />
+            <TextBlock Text="{Binding Count}" Style="{StaticResource TextoSuave}" HorizontalAlignment="Right" VerticalAlignment="Bottom" />
+          </Grid>
+          <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Focusable="False">
+            <ItemsControl ItemsSource="{Binding Rows}" ItemTemplate="{StaticResource FilaTarea}" Focusable="False" />
+          </ScrollViewer>
+          <TextBox Grid.Row="2" Style="{StaticResource Campo}" Tag="Añadir tarea…" KeyDown="WeekAdd_KeyDown" MaxLength="300" Margin="0,8,4,0" AutomationProperties.Name="{Binding AddName}" />
+        </Grid>
+      </Border>
+      <DataTemplate.Triggers>
+        <DataTrigger Binding="{Binding IsToday}" Value="True">
+          <Setter TargetName="Columna" Property="BorderBrush" Value="{DynamicResource wn-ambar}" />
+          <Setter TargetName="Titulo" Property="Foreground" Value="{DynamicResource wn-ambar}" />
+        </DataTrigger>
+      </DataTemplate.Triggers>
+    </DataTemplate>
+
     <!-- Un día de la semana: tareas hechas y minutos de foco -->
     <DataTemplate x:Key="ColumnaDia">
       <Grid Width="30" Margin="0,0,4,0" ToolTip="{Binding Tip}">
@@ -211,6 +239,8 @@
             </StackPanel>
             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
               <Button x:Name="UpdateButton" Style="{StaticResource BotonPrincipal}" Click="Update_Click" Visibility="Collapsed" Margin="0,0,8,0" />
+              <RadioButton x:Name="ViewDay" Style="{StaticResource Ficha}" GroupName="vista" Content="Día" Click="View_Click" IsChecked="True" Margin="0,0,4,0" />
+              <RadioButton x:Name="ViewWeek" Style="{StaticResource Ficha}" GroupName="vista" Content="Semana" Click="View_Click" Margin="0,0,8,0" />
               <Button x:Name="UndoButton" Style="{StaticResource BotonIcono}" Click="Undo_Click" ToolTip="Deshacer (Ctrl+Z)" AutomationProperties.Name="Deshacer" IsEnabled="False">
                 <Path Style="{StaticResource Icono}" Data="M6,3.5 L2.5,7 L6,10.5 M2.5,7 H10 A3.25,3.25 0 0 1 10,13.5 H7.5" />
               </Button>
@@ -225,7 +255,7 @@
             <StackPanel x:Name="Cards" Orientation="Horizontal">
 
               <!-- Tareas -->
-              <Border x:Name="CardTasks" Style="{StaticResource Tarjeta}" Width="372">
+              <Border x:Name="CardTasks" Style="{StaticResource Tarjeta}" Background="{DynamicResource wn-tarjeta-tareas}" Width="372">
                 <Grid>
                   <Grid x:Name="TaskListView">
                     <Grid.RowDefinitions>
@@ -239,7 +269,10 @@
                         <ColumnDefinition Width="Auto" />
                       </Grid.ColumnDefinitions>
                       <TextBlock x:Name="DayTitle" Style="{StaticResource Texto}" FontFamily="{StaticResource LetraTitulo}" FontSize="18" FontWeight="SemiBold" />
-                      <TextBlock x:Name="DayCount" Grid.Column="1" Style="{StaticResource TextoSuave}" VerticalAlignment="Bottom" Margin="8,0,0,2" />
+                      <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                        <RadioButton x:Name="TabTodo" Style="{StaticResource Ficha}" GroupName="hechas" Click="TaskTab_Click" IsChecked="True" />
+                        <RadioButton x:Name="TabDone" Style="{StaticResource Ficha}" GroupName="hechas" Click="TaskTab_Click" Margin="0" />
+                      </StackPanel>
                     </Grid>
                     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Focusable="False">
                       <StackPanel>
@@ -316,7 +349,7 @@
               </Border>
 
               <!-- Foco -->
-              <Border x:Name="CardFocus" Style="{StaticResource Tarjeta}" Width="264">
+              <Border x:Name="CardFocus" Style="{StaticResource Tarjeta}" Background="{DynamicResource wn-tarjeta-foco}" Width="264">
                 <Grid>
                   <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -369,7 +402,7 @@
               </Border>
 
               <!-- Notas -->
-              <Border x:Name="CardNotes" Style="{StaticResource Tarjeta}" Width="250">
+              <Border x:Name="CardNotes" Style="{StaticResource Tarjeta}" Background="{DynamicResource wn-tarjeta-notas}" Width="250">
                 <Grid>
                   <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -382,7 +415,7 @@
               </Border>
 
               <!-- Recortes -->
-              <Border x:Name="CardClips" Style="{StaticResource Tarjeta}" Width="250" AllowDrop="True" Drop="Clips_Drop" DragOver="Clips_DragOver">
+              <Border x:Name="CardClips" Style="{StaticResource Tarjeta}" Background="{DynamicResource wn-tarjeta-recortes}" Width="250" AllowDrop="True" Drop="Clips_Drop" DragOver="Clips_DragOver">
                 <Grid>
                   <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -399,8 +432,8 @@
                 </Grid>
               </Border>
 
-              <!-- Semana -->
-              <Border x:Name="CardWeek" Style="{StaticResource Tarjeta}" Width="270">
+              <!-- Progreso -->
+              <Border x:Name="CardProgress" Style="{StaticResource Tarjeta}" Background="{DynamicResource wn-tarjeta-progreso}" Width="270">
                 <Grid>
                   <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -408,7 +441,7 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                   </Grid.RowDefinitions>
-                  <TextBlock Text="Semana" Style="{StaticResource TituloTarjeta}" Margin="0,0,0,10" />
+                  <TextBlock Text="Progreso" Style="{StaticResource TituloTarjeta}" Margin="0,0,0,10" />
                   <ItemsControl x:Name="WeekChart" Grid.Row="1" ItemTemplate="{StaticResource ColumnaDia}" Focusable="False" HorizontalAlignment="Left">
                     <ItemsControl.ItemsPanel>
                       <ItemsPanelTemplate>
@@ -430,6 +463,17 @@
                 </Grid>
               </Border>
             </StackPanel>
+          </ScrollViewer>
+
+          <!-- Semana: la bandeja y los próximos días, una columna cada uno -->
+          <ScrollViewer x:Name="WeekView" Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" Focusable="False" Margin="14,0,4,14" Visibility="Collapsed">
+            <ItemsControl x:Name="WeekColumns" ItemTemplate="{StaticResource ColumnaSemana}" Focusable="False">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <StackPanel Orientation="Horizontal" />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+            </ItemsControl>
           </ScrollViewer>
 
           <!-- Ajustes -->
@@ -487,7 +531,7 @@
                     <CheckBox x:Name="ShowFocus" Style="{StaticResource Interruptor}" Content="Foco" Tag="foco" Click="Card_Click" />
                     <CheckBox x:Name="ShowNotes" Style="{StaticResource Interruptor}" Content="Notas" Tag="notas" Click="Card_Click" />
                     <CheckBox x:Name="ShowClips" Style="{StaticResource Interruptor}" Content="Recortes" Tag="recortes" Click="Card_Click" />
-                    <CheckBox x:Name="ShowWeek" Style="{StaticResource Interruptor}" Content="Semana" Tag="semana" Click="Card_Click" />
+                    <CheckBox x:Name="ShowProgress" Style="{StaticResource Interruptor}" Content="Progreso" Tag="progreso" Click="Card_Click" />
                     <TextBlock Text="Recortes" Style="{StaticResource TextoSuave}" Margin="0,12,0,2" />
                     <CheckBox x:Name="OptClipboard" Style="{StaticResource Interruptor}" Content="Colgar lo que copias" Click="Option_Click" />
                     <CheckBox x:Name="OptScreenshots" Style="{StaticResource Interruptor}" Content="Colgar las capturas de pantalla" Click="Option_Click" />

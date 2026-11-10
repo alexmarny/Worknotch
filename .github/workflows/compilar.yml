@@ -115,7 +115,7 @@ jobs:
           if (Test-Path humo\humo.log) { Get-Content humo\humo.log -Encoding utf8 }
           if ($p.ExitCode -ne 0) { throw "La prueba de la interfaz ha salido con $($p.ExitCode)" }
           $capturas = @(Get-ChildItem humo\*.png)
-          if ($capturas.Count -ne 14) { throw "Tendría que haber 14 capturas y hay $($capturas.Count)" }
+          if ($capturas.Count -ne 16) { throw "Tendría que haber 16 capturas y hay $($capturas.Count)" }
 
       - uses: actions/upload-artifact@v7
         if: always()
@@ -223,6 +223,35 @@ jobs:
           if (Test-Path "$app\Worknotch.exe") { throw "La desinstalación no ha borrado el programa" }
           if (Get-Process Worknotch -ErrorAction SilentlyContinue) { throw "La app sigue en marcha tras desinstalar" }
           if (Test-Path "HKCU:\Software\Classes\worknotch") { throw "Quedan registrados los enlaces worknotch://" }
+
+  # Al lanzarla a mano, las capturas de la interfaz se dejan también en la rama «ci-capturas» (se
+  # reescribe entera cada vez), para verlas sin descargar el artefacto. Corre aunque «windows» falle:
+  # es justo entonces cuando más falta hace mirarlas.
+  capturas:
+    name: Capturas a la rama ci-capturas
+    needs: windows
+    if: always() && github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: capturas
+          path: capturas
+
+      - name: Subir a la rama
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cd capturas
+          git init -q -b ci-capturas
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Capturas de la interfaz de $GITHUB_SHA"
+          git push -f "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" ci-capturas
 
   publicar:
     name: Publicar versión
