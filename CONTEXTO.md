@@ -6,7 +6,7 @@ Una app de Windows que vive pegada al borde de arriba de la pantalla, como el no
 
 Uso personal. Repo público `alexmarny/Worknotch`, que también sirve las versiones.
 
-## Estado actual (10-11-2026, sin publicar)
+## Estado actual (10-11-2026, v0.1.0-beta.1)
 
 Primera versión completa, escrita en una sesión sin Windows delante: **nadie la ha usado todavía en un PC de verdad**. Lo comprobado es lo que cubren las pruebas del núcleo y la CI en Windows (ver «Cómo probar»). Lo que falta por mirar a mano está en «Pendiente de probar en un PC».
 
