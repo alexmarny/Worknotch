@@ -514,6 +514,13 @@
                       <RadioButton x:Name="ScreenPointer" Style="{StaticResource Ficha}" GroupName="pantalla" Content="Donde esté el puntero" Click="Screen_Click" Tag="Pointer" />
                       <RadioButton x:Name="ScreenPrimary" Style="{StaticResource Ficha}" GroupName="pantalla" Content="La principal" Click="Screen_Click" Tag="Primary" />
                     </StackPanel>
+                    <TextBlock Text="Pastilla" Style="{StaticResource TextoSuave}" Margin="0,14,0,6" />
+                    <StackPanel Orientation="Horizontal">
+                      <RadioButton x:Name="PillNormal" Style="{StaticResource Ficha}" GroupName="pastilla" Content="Normal" Click="PillChoice_Click" Tag="Normal" />
+                      <RadioButton x:Name="PillSmall" Style="{StaticResource Ficha}" GroupName="pastilla" Content="Pequeña" Click="PillChoice_Click" Tag="Small" />
+                      <RadioButton x:Name="PillHidden" Style="{StaticResource Ficha}" GroupName="pastilla" Content="Escondida" Click="PillChoice_Click" Tag="Hidden" />
+                    </StackPanel>
+                    <TextBlock x:Name="PillHiddenHint" Style="{StaticResource TextoSuave}" TextWrapping="Wrap" Margin="0,4,0,0" Visibility="Collapsed" />
                     <TextBlock Text="Atajo para abrir y cerrar" Style="{StaticResource TextoSuave}" Margin="0,14,0,6" />
                     <Button x:Name="HotkeyButton" Style="{StaticResource Boton}" HorizontalAlignment="Left" Click="Hotkey_Click" ToolTip="Pulsa para elegir otro" />
                     <TextBlock x:Name="HotkeyError" Style="{StaticResource TextoSuave}" Foreground="{DynamicResource wn-alta}" TextWrapping="Wrap" Margin="0,4,0,0" Visibility="Collapsed"

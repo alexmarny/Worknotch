@@ -90,5 +90,15 @@ public class AlmacenTests
         Assert.Empty(d.Tasks[0].Steps);
         Assert.Equal(["tareas"], d.Settings.Cards);
         Assert.Equal(25, d.Settings.FocusMinutes);
+        Assert.Equal(PillChoice.Normal, d.Settings.Pill);
+    }
+
+    [Fact]
+    public void LaPastillaElegidaSeGuarda()
+    {
+        using var tmp = new TempStore();
+        tmp.Store.Mutate(d => d.Settings.Pill = PillChoice.Hidden);
+        Assert.Contains("\"Hidden\"", File.ReadAllText(tmp.Store.Path));
+        Assert.Equal(PillChoice.Hidden, new Store(tmp.Store.Path).Read().Settings.Pill);
     }
 }

@@ -30,7 +30,7 @@ Valen para todo lo nuevo que entre en la app.
 - **Tamaño de pulsación:** nada que se pulse mide menos de 20 × 20; los botones, 28 de alto.
 - **Animación:** solo crece el notch (220 ms) y aparece el panel (260 ms). Nada se mueve solo, y con las animaciones de Windows apagadas el cambio es directo.
 - **Formatos:** horas y fechas con `Texts` (`Texts.Time`, `Texts.Duration`, `Planner.DayName`), siempre en español aunque Windows esté en otro idioma.
-- **La app no pide atención.** No roba el foco al abrirse con el ratón, se aparta de lo que esté a pantalla completa y solo suena cuando llega un aviso.
+- **La app no pide atención.** No roba el foco al abrirse con el ratón, se aparta de lo que esté a pantalla completa y solo suena cuando llega un aviso. La pastilla se puede hacer pequeña (sin texto) o esconder; los avisos salen igual.
 
 ## Fundamentos visuales
 
@@ -48,7 +48,7 @@ Valen para todo lo nuevo que entre en la app.
 
 **Una letra, tres tamaños.** Segoe UI Variable: 12 para datos y ayudas, 14 para lo que se lee y 18 para el día que se está viendo y el título de Ajustes. Nada visible baja de 12. Sin mayúsculas sostenidas.
 
-**Marcos, no sombras.** Las tarjetas se separan por su fondo; el notch lleva un filete (`wn-filete`) para distinguirse de un fondo de pantalla oscuro. Radios: 22 el notch abierto, 14 las tarjetas y las fichas, 8 lo que se pulsa.
+**Marcos, no sombras.** Las tarjetas se separan por su fondo; el notch lleva un filete (`wn-filete`) para distinguirse de un fondo de pantalla oscuro. Radios: 22 el notch abierto, 14 la pastilla (la mitad de su alto si es menor), las tarjetas y las fichas, 8 lo que se pulsa.
 
 **Movimiento.** Una sola transición: el notch crece desde la pastilla y el contenido aparece cuando ya tiene sitio.
 

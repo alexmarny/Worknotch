@@ -19,6 +19,8 @@ public partial class NotchWindow : Window
     private enum Mode { Pill, Panel, Alert }
 
     private const double PillWidth = 240, PillHeight = 30, PanelHeight = 430, AlertWidth = 460, AlertHeight = 116;
+    // La pequeña no lleva texto; su alto deja el botón en 21, por encima del mínimo de pulsación
+    private const double SmallPillWidth = 120, SmallPillHeight = 22;
     private const double WindowWidthDip = 1320, WindowHeightDip = 520;
 
     private readonly Store _store;
@@ -132,7 +134,7 @@ public partial class NotchWindow : Window
     {
         if (_mode == Mode.Alert) return;
         _pinned = pinned;
-        if (_hiddenForFullscreen) { _hiddenForFullscreen = false; Shell.Visibility = Visibility.Visible; }
+        _hiddenForFullscreen = false;
         if (_mode != Mode.Panel)
         {
             _mode = Mode.Panel;
@@ -202,17 +204,18 @@ public partial class NotchWindow : Window
     /// <summary>Pone el tamaño y la forma del notch según el modo, y enseña solo la vista que toca.</summary>
     private void ApplyMode(bool animate)
     {
-        double w = PillWidth, h = PillHeight;
-        if (_mode == Mode.Panel) { w = PanelWidth(); h = PanelHeight; }
-        else if (_mode == Mode.Alert) { w = AlertWidth; h = AlertHeight; }
+        var (w, h) = TargetSize();
+        double radius = _mode == Mode.Pill ? Math.Min(14, h / 2) : 22;
 
         Pill.Visibility = _mode == Mode.Pill ? Visibility.Visible : Visibility.Collapsed;
+        if (_mode == Mode.Pill) Pill.Height = h - 1; // el filete de abajo
         Alert.Visibility = _mode == Mode.Alert ? Visibility.Visible : Visibility.Collapsed;
         PanelView.Width = w;
-        Shell.CornerRadius = new CornerRadius(0, 0, _mode == Mode.Pill ? 14 : 22, _mode == Mode.Pill ? 14 : 22);
+        Shell.CornerRadius = new CornerRadius(0, 0, radius, radius);
+        UpdateShellVisibility();
 
-        // Con «mostrar animaciones» apagado en Windows, el cambio es directo
-        bool motion = animate && !Instant && SystemParameters.ClientAreaAnimation;
+        // Con «mostrar animaciones» apagado en Windows, el cambio es directo. Lo que se esconde no se anima.
+        bool motion = animate && !Instant && SystemParameters.ClientAreaAnimation && Shell.Visibility == Visibility.Visible;
         var size = TimeSpan.FromMilliseconds(motion ? 220 : 0);
         Shell.BeginAnimation(WidthProperty, null);
         Shell.BeginAnimation(HeightProperty, null);
@@ -238,6 +241,24 @@ public partial class NotchWindow : Window
             PanelView.Opacity = 0;
             PanelView.Visibility = Visibility.Collapsed;
         }
+    }
+
+    private (double Width, double Height) TargetSize() => _mode switch
+    {
+        Mode.Panel => (PanelWidth(), PanelHeight),
+        Mode.Alert => (AlertWidth, AlertHeight),
+        // escondida guarda el tamaño de la pequeña: el panel crece desde ahí
+        _ => _data.Settings.Pill == PillChoice.Normal ? (PillWidth, PillHeight) : (SmallPillWidth, SmallPillHeight),
+    };
+
+    /// <summary>
+    /// Solo se esconde la pastilla, nunca el panel ni un aviso: por lo elegido en Ajustes o porque hay
+    /// algo a pantalla completa.
+    /// </summary>
+    private void UpdateShellVisibility()
+    {
+        bool hide = _mode == Mode.Pill && (_hiddenForFullscreen || _data.Settings.Pill == PillChoice.Hidden);
+        Shell.Visibility = hide ? Visibility.Hidden : Visibility.Visible;
     }
 
     private double PanelWidth()
@@ -270,7 +291,9 @@ public partial class NotchWindow : Window
         RenderWeekView();
         RenderPill();
         UndoButton.IsEnabled = _store.CanUndo;
-        if (_mode == Mode.Panel && Math.Abs(PanelWidth() - Shell.Width) > 0.5) ApplyMode(animate: false);
+        var (w, h) = TargetSize();
+        if (_mode != Mode.Alert && (Math.Abs(w - Shell.Width) > 0.5 || Math.Abs(h - Shell.Height) > 0.5)) ApplyMode(animate: false);
+        else UpdateShellVisibility();
     }
 
     /// <summary>Aplica un cambio y repinta. Si no se puede, devuelve el motivo para enseñarlo junto al campo.</summary>
@@ -344,7 +367,18 @@ public partial class NotchWindow : Window
         bool fullscreen = Native.FullscreenAppOn(_monitor, _hwnd);
         if (fullscreen == _hiddenForFullscreen) return;
         _hiddenForFullscreen = fullscreen;
-        Shell.Visibility = fullscreen ? Visibility.Hidden : Visibility.Visible;
+        UpdateShellVisibility();
+    }
+
+    // ---------- La pastilla ----------
+
+    public PillChoice PillShown => _data.Settings.Pill;
+
+    /// <summary>Cambia cómo se ve la pastilla (desde Ajustes o desde el icono junto al reloj).</summary>
+    public void SetPill(PillChoice choice)
+    {
+        Do((d, _) => d.Settings.Pill = choice);
+        if (_mode == Mode.Pill) ApplyMode(animate: false);
     }
 
     // ---------- Enlaces worknotch:// ----------

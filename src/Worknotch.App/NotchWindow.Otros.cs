@@ -202,6 +202,12 @@ public partial class NotchWindow
         ThemeDay.IsChecked = s.Theme == ThemeChoice.Day;
         ScreenPointer.IsChecked = s.Screen == ScreenChoice.Pointer;
         ScreenPrimary.IsChecked = s.Screen == ScreenChoice.Primary;
+        PillNormal.IsChecked = s.Pill == PillChoice.Normal;
+        PillSmall.IsChecked = s.Pill == PillChoice.Small;
+        PillHidden.IsChecked = s.Pill == PillChoice.Hidden;
+        // Sin pastilla a la vista, hay que saber por dónde se vuelve a abrir
+        PillHiddenHint.Text = $"Se abre con {s.Hotkey} o desde el icono junto al reloj.";
+        PillHiddenHint.Visibility = s.Pill == PillChoice.Hidden ? Visibility.Visible : Visibility.Collapsed;
         HotkeyButton.Content = s.Hotkey;
         HotkeyError.Visibility = _hotkey is { Registered: false } ? Visibility.Visible : Visibility.Collapsed;
         SettingsMinutes.Text = $"{s.FocusMinutes} min";
@@ -245,6 +251,9 @@ public partial class NotchWindow
         Do((d, _) => d.Settings.Screen = choice);
         Place();
     }
+
+    private void PillChoice_Click(object sender, RoutedEventArgs e) =>
+        SetPill(Enum.Parse<PillChoice>((string)((FrameworkElement)sender).Tag));
 
     private void Hotkey_Click(object sender, RoutedEventArgs e)
     {
@@ -381,7 +390,7 @@ public partial class NotchWindow
             };
             AlertButtons.Children.Add(button);
         }
-        if (_hiddenForFullscreen) { _hiddenForFullscreen = false; Shell.Visibility = Visibility.Visible; }
+        _hiddenForFullscreen = false;
         _mode = Mode.Alert;
         _settingsOpen = false;
         ApplyMode(animate: true);

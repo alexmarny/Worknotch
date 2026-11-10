@@ -89,6 +89,8 @@ internal static class Smoke
                 Shot("6-aviso");
                 window.DismissAlert();
                 Shot("7-pastilla-con-foco");
+                window.SetPill(PillChoice.Small);
+                Shot("8-pastilla-pequena-con-foco");
 
                 store.Mutate(d =>
                 {
@@ -97,6 +99,20 @@ internal static class Smoke
                     d.Tasks.First(t => t.Id == detailId).FocusSeconds = 0;
                     d.Settings.Cards = new Settings().Cards;
                 });
+                window.Refresh();
+                Shot("9-pastilla-pequena");
+
+                window.SetPill(PillChoice.Hidden);
+                Flush(window);
+                if (window.ShellElement.IsVisible)
+                {
+                    log.Add($"FALLA {name}/pastilla-escondida: la pastilla se sigue viendo");
+                    failures++;
+                }
+                window.OpenSettings();
+                Shot("10-ajustes-pastilla-escondida");
+
+                store.Mutate(d => d.Settings.Pill = PillChoice.Normal);
                 window.Close();
             }
         }

@@ -63,6 +63,18 @@ public partial class App : Application
         var menu = new Forms.ContextMenuStrip();
         menu.Items.Add("Abrir Worknotch", null, (_, _) => _window?.Open(pinned: true));
         menu.Items.Add("Ajustes", null, (_, _) => _window?.OpenSettings());
+
+        // Los mismos tres modos que en Ajustes, para esconderla sin abrir el panel
+        var pill = new Forms.ToolStripMenuItem("Pastilla");
+        foreach (var (text, choice) in new[] { ("Normal", PillChoice.Normal), ("Pequeña", PillChoice.Small), ("Escondida", PillChoice.Hidden) })
+            pill.DropDownItems.Add(new Forms.ToolStripMenuItem(text, null, (_, _) => _window?.SetPill(choice)) { Tag = choice });
+        menu.Items.Add(pill);
+        menu.Opening += (_, _) =>
+        {
+            foreach (Forms.ToolStripMenuItem item in pill.DropDownItems)
+                item.Checked = _window != null && (PillChoice)item.Tag! == _window.PillShown;
+        };
+
         menu.Items.Add(new Forms.ToolStripSeparator());
         menu.Items.Add("Salir", null, (_, _) => Shutdown());
         _tray = new Forms.NotifyIcon

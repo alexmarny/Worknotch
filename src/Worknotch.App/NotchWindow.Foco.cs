@@ -48,6 +48,12 @@ public partial class NotchWindow
     {
         var now = _clock.Now;
         var t = _data.Timer;
+        // La pequeña no lleva texto: solo el reloj de puntos mientras hay foco
+        bool small = _data.Settings.Pill != PillChoice.Normal;
+        PillText.Visibility = small ? Visibility.Collapsed : Visibility.Visible;
+        PillClock.Margin = new Thickness(0, 0, small ? 0 : 8, 0);
+        PillClock.Dot = small ? 1.5 : 2; // que le quede aire arriba y abajo
+        PillClock.Gap = small ? 0.75 : 1;
         if (t.Active)
         {
             PillClock.Visibility = Visibility.Visible;

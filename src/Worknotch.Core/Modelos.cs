@@ -14,6 +14,9 @@ public enum ThemeChoice { System, Night, Day }
 
 public enum ScreenChoice { Pointer, Primary }
 
+/// <summary>Cómo se ve la pastilla cuando el panel está cerrado.</summary>
+public enum PillChoice { Normal, Small, Hidden }
+
 /// <summary>Un paso dentro de una tarea.</summary>
 public sealed class Step
 {
@@ -86,6 +89,7 @@ public sealed class Settings
 {
     public ThemeChoice Theme { get; set; } = ThemeChoice.System;
     public ScreenChoice Screen { get; set; } = ScreenChoice.Pointer;
+    public PillChoice Pill { get; set; } = PillChoice.Normal;
     /// <summary>Tarjetas visibles, en orden: tareas, foco, notas, recortes, progreso.</summary>
     public List<string> Cards { get; set; } = ["tareas", "foco", "notas", "recortes"];
     public string Hotkey { get; set; } = "Ctrl+Alt+Espacio";

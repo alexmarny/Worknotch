@@ -13,13 +13,14 @@ Primera versión completa, escrita en una sesión sin Windows delante: **nadie l
 ### Funcionalidades
 
 - Pastilla arriba en el centro; se abre al pasar el puntero, con el atajo global (por defecto `Ctrl+Alt+Espacio`, se elige entre cinco) o desde el icono junto al reloj. `Esc` la cierra.
+- La pastilla puede ser normal (con texto), pequeña (120 × 22, sin texto; solo el reloj de puntos mientras hay foco) o estar escondida (se abre con el atajo o desde el icono). Se elige en Ajustes o en el menú del icono, en «Pastilla». Los avisos salen siempre.
 - Tareas: hoy, seis días siguientes, bandeja sin día e historial de días pasados (solo consulta), con pestañas «Por hacer» y «Hechas». Prioridad, proyecto, aviso, repetición, fecha límite, minutos de foco, pasos y notas. Entrada rápida en una línea. Subir, bajar, mover de día, deshacer (`Ctrl+Z`, 30 pasos).
 - Paso de día: lo pendiente se trae a hoy y recuerda de qué día viene (se puede apagar).
 - Foco: cuenta atrás o cronómetro, con o sin tarea, pausa, «5 min más», y el tiempo queda apuntado en la tarea y en la semana.
 - Avisos en el propio notch (recordatorio y final del foco), con sonido opcional.
 - Notas (se guardan solas), Recortes (portapapeles, capturas de pantalla, arrastrar y soltar), Progreso (gráfica de siete días, racha, mejor hora).
 - Vista Semana: la bandeja y cuatro días, una columna cada uno, para repartir tareas (se mueven con el menú de cada una).
-- Ajustes: tema, pantalla, atajo, tarjetas a la vista, arranque con Windows y demás.
+- Ajustes: tema, pantalla, pastilla, atajo, tarjetas a la vista, arranque con Windows y demás.
 - Servidor MCP para Claude (`worknotch-mcp.exe`, 16 herramientas) y enlaces `worknotch://`.
 - Actualización desde la app, con suma SHA-256 comprobada.
 
@@ -78,6 +79,7 @@ La CI comprueba que arranca, que cada vista se pinta y cumple los criterios, y q
 - Recortes con el portapapeles de verdad (texto, imágenes de Win+Mayús+S, archivos) y arrastrar hacia otros programas.
 - La carpeta de capturas: se vigilan `Imágenes\Screenshots`, `Imágenes\Capturas de pantalla` y `Vídeos\Captures`; en un Windows en español puede llamarse de otra forma.
 - La actualización de una versión a la siguiente desde el botón (necesita dos versiones publicadas).
+- La pastilla pequeña: que se encuentra con el puntero sin buscarla y que el reloj de puntos se lee a ese tamaño.
 
 ## Ideas pendientes (propuestas, sin elegir todavía)
 
