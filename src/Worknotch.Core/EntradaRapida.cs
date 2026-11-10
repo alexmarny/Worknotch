@@ -47,6 +47,16 @@ public static partial class QuickAdd
             return " ";
         });
 
+        // «cada viernes»: se repite cada semana, empezando el próximo viernes
+        text = EveryWeekdayRx().Replace(text, m =>
+        {
+            if (repeat != Repeat.None || dayGiven) return m.Value;
+            repeat = Repeat.Weekly;
+            day = NextWeekday(m.Groups[1].Value, today, includeToday: true);
+            dayGiven = true;
+            return " ";
+        });
+
         text = RepeatRx().Replace(text, m =>
         {
             if (repeat != Repeat.None) return m.Value;
@@ -115,12 +125,7 @@ public static partial class QuickAdd
                 case "mañana": day = today.AddDays(1); break;
                 case "pasado mañana": day = today.AddDays(2); break;
                 case "bandeja" or "sin día" or "sin dia": day = null; break;
-                default:
-                    int target = Array.IndexOf(Weekdays, w.Replace("miercoles", "miércoles").Replace("sabado", "sábado"));
-                    int now = ((int)today.DayOfWeek + 6) % 7;
-                    int delta = (target - now + 7) % 7;
-                    day = today.AddDays(delta == 0 ? 7 : delta);
-                    break;
+                default: day = NextWeekday(w, today, includeToday: false); break;
             }
             dayGiven = true;
             return " ";
@@ -131,6 +136,17 @@ public static partial class QuickAdd
         title = DanglingRx().Replace(title, "").Trim();
         return new QuickEntry(title, day, dayGiven, time, priority, project, repeat, minutes);
     }
+
+    private static DateOnly NextWeekday(string word, DateOnly today, bool includeToday)
+    {
+        int target = Array.IndexOf(Weekdays, word.ToLowerInvariant().Replace("miercoles", "miércoles").Replace("sabado", "sábado"));
+        int now = ((int)today.DayOfWeek + 6) % 7;
+        int delta = (target - now + 7) % 7;
+        return today.AddDays(delta == 0 && !includeToday ? 7 : delta);
+    }
+
+    [GeneratedRegex(@"(?<=\s)cada (lunes|martes|mi[eé]rcoles|jueves|viernes|s[aá]bado|domingo)(?=\s)", RegexOptions.IgnoreCase)]
+    private static partial Regex EveryWeekdayRx();
 
     [GeneratedRegex(@"(?<=\s)#([\p{L}\p{N}_-]{1,40})(?=\s)")]
     private static partial Regex ProjectRx();

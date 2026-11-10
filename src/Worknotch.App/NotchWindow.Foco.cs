@@ -36,7 +36,7 @@ public partial class NotchWindow
 
         // Con horas («1:05:00») los puntos se hacen algo más pequeños para que quepa
         bool wide = clock.Length > 5;
-        Clock.Dot = wide ? 5 : 6;
+        Clock.Dot = wide ? 4.5 : 6;
         Clock.Gap = wide ? 1.5 : 2;
         Clock.Text = clock;
 

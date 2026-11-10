@@ -198,11 +198,15 @@
 
         <!-- Pastilla: lo siguiente del día, o el temporizador en marcha -->
         <Button x:Name="Pill" Style="{StaticResource BotonFila}" Height="29" VerticalAlignment="Top" Click="Pill_Click" AutomationProperties.Name="Abrir Worknotch">
-          <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+          <Grid HorizontalAlignment="Center" VerticalAlignment="Center" Margin="16,0">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="Auto" />
+              <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
             <c:DotDisplay x:Name="PillClock" Dot="2" Gap="1" Margin="0,0,8,0" VerticalAlignment="Center" Visibility="Collapsed"
                           OnBrush="{DynamicResource wn-ambar}" />
-            <TextBlock x:Name="PillText" Style="{StaticResource Texto}" FontSize="12" MaxWidth="170" VerticalAlignment="Center" />
-          </StackPanel>
+            <TextBlock x:Name="PillText" Grid.Column="1" Style="{StaticResource Texto}" FontSize="12" VerticalAlignment="Center" />
+          </Grid>
         </Button>
 
         <!-- Aviso: un recordatorio o el final del foco -->
@@ -230,6 +234,7 @@
               <ColumnDefinition Width="*" />
               <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
+            <TextBlock x:Name="WeekRange" Style="{StaticResource Texto}" FontFamily="{StaticResource LetraTitulo}" FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center" Margin="2,0,0,0" Visibility="Collapsed" />
             <StackPanel x:Name="Days" Orientation="Horizontal" VerticalAlignment="Center">
               <RadioButton x:Name="InboxChip" Style="{StaticResource Ficha}" GroupName="dias" Click="Inbox_Click" Content="Bandeja" Margin="0,0,10,0" />
               <Button x:Name="PrevDay" Style="{StaticResource BotonIcono}" Click="PrevDay_Click" ToolTip="Día anterior" AutomationProperties.Name="Día anterior" Margin="0,0,6,0">
@@ -321,13 +326,13 @@
                             <RowDefinition Height="38" />
                           </Grid.RowDefinitions>
                           <TextBlock Text="Día" Style="{StaticResource TextoSuave}" VerticalAlignment="Center" />
-                          <Button x:Name="DetailDay" Grid.Column="1" Style="{StaticResource Boton}" HorizontalAlignment="Left" Click="DetailDay_Click" />
+                          <Button x:Name="DetailDay" Grid.Column="1" Style="{StaticResource Boton}" HorizontalAlignment="Left" VerticalAlignment="Center" Click="DetailDay_Click" />
                           <TextBlock Grid.Row="1" Text="Aviso" Style="{StaticResource TextoSuave}" VerticalAlignment="Center" />
                           <TextBox x:Name="DetailRemind" Grid.Row="1" Grid.Column="1" Style="{StaticResource Campo}" Tag="17:30…" VerticalAlignment="Center" LostFocus="DetailField_Changed" KeyDown="DetailField_KeyDown" AutomationProperties.Name="Hora del aviso" />
                           <TextBlock Grid.Row="2" Text="Prioridad" Style="{StaticResource TextoSuave}" VerticalAlignment="Center" />
-                          <Button x:Name="DetailPriority" Grid.Row="2" Grid.Column="1" Style="{StaticResource Boton}" HorizontalAlignment="Left" Click="DetailPriority_Click" ToolTip="Pulsa para cambiarla" />
+                          <Button x:Name="DetailPriority" Grid.Row="2" Grid.Column="1" Style="{StaticResource Boton}" HorizontalAlignment="Left" VerticalAlignment="Center" Click="DetailPriority_Click" ToolTip="Pulsa para cambiarla" />
                           <TextBlock Grid.Row="3" Text="Se repite" Style="{StaticResource TextoSuave}" VerticalAlignment="Center" />
-                          <Button x:Name="DetailRepeat" Grid.Row="3" Grid.Column="1" Style="{StaticResource Boton}" HorizontalAlignment="Left" Click="DetailRepeat_Click" ToolTip="Pulsa para cambiarlo" />
+                          <Button x:Name="DetailRepeat" Grid.Row="3" Grid.Column="1" Style="{StaticResource Boton}" HorizontalAlignment="Left" VerticalAlignment="Center" Click="DetailRepeat_Click" ToolTip="Pulsa para cambiarlo" />
                           <TextBlock Grid.Row="4" Text="Proyecto" Style="{StaticResource TextoSuave}" VerticalAlignment="Center" />
                           <TextBox x:Name="DetailProject" Grid.Row="4" Grid.Column="1" Style="{StaticResource Campo}" Tag="Sin proyecto…" VerticalAlignment="Center" LostFocus="DetailField_Changed" KeyDown="DetailField_KeyDown" MaxLength="40" AutomationProperties.Name="Proyecto" />
                           <TextBlock Grid.Row="5" Text="Minutos de foco" Style="{StaticResource TextoSuave}" VerticalAlignment="Center" />
@@ -349,7 +354,7 @@
               </Border>
 
               <!-- Foco -->
-              <Border x:Name="CardFocus" Style="{StaticResource Tarjeta}" Background="{DynamicResource wn-tarjeta-foco}" Width="264">
+              <Border x:Name="CardFocus" Style="{StaticResource Tarjeta}" Background="{DynamicResource wn-tarjeta-foco}" Width="288">
                 <Grid>
                   <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />

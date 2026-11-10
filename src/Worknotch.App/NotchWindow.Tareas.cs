@@ -120,6 +120,10 @@ public partial class NotchWindow
             columns.Add(new WeekColumn(title, rows.Count > 0 ? rows.Count.ToString() : "", day, day == _today, rows));
         }
         WeekColumns.ItemsSource = columns;
+        var last = _today.AddDays(WeekDays - 1);
+        WeekRange.Text = last.Month == _today.Month
+            ? $"Del {_today.Day} al {last.ToString("d 'de' MMMM", Texts.Culture)}"
+            : $"Del {_today.ToString("d 'de' MMMM", Texts.Culture)} al {last.ToString("d 'de' MMMM", Texts.Culture)}";
     }
 
     private void View_Click(object sender, RoutedEventArgs e) => ShowWeek(sender == ViewWeek);

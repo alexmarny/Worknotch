@@ -229,9 +229,10 @@
         <ControlTemplate TargetType="TextBox">
           <Border x:Name="Caja" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1.5" CornerRadius="8" SnapsToDevicePixels="True">
             <Grid>
+              <!-- El relleno del campo lo aplica la caja de texto por dentro; la ayuda lo repite para caer en el mismo sitio -->
               <TextBlock x:Name="Ayuda" Text="{TemplateBinding Tag}" Margin="{TemplateBinding Padding}" Padding="2,0" FontSize="{TemplateBinding FontSize}"
                          Foreground="{DynamicResource wn-texto-suave}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" IsHitTestVisible="False" Visibility="Collapsed" TextTrimming="CharacterEllipsis" />
-              <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" Focusable="False"
+              <ScrollViewer x:Name="PART_ContentHost" Padding="{TemplateBinding Padding}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" Focusable="False"
                             HorizontalScrollBarVisibility="{TemplateBinding HorizontalScrollBarVisibility}" VerticalScrollBarVisibility="{TemplateBinding VerticalScrollBarVisibility}" />
             </Grid>
           </Border>

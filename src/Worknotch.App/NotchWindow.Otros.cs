@@ -189,6 +189,7 @@ public partial class NotchWindow
         SettingsView.Visibility = _settingsOpen ? Visibility.Visible : Visibility.Collapsed;
         Days.Visibility = _settingsOpen || _weekView ? Visibility.Hidden : Visibility.Visible;
         ViewDay.Visibility = ViewWeek.Visibility = _settingsOpen ? Visibility.Collapsed : Visibility.Visible;
+        WeekRange.Visibility = _weekView && !_settingsOpen ? Visibility.Visible : Visibility.Collapsed;
         ViewDay.IsChecked = !_weekView;
         ViewWeek.IsChecked = _weekView;
 

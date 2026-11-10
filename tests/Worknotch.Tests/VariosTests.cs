@@ -81,8 +81,8 @@ public class MatrizPuntosTests
     [Fact]
     public void ElAnchoDeUnaHora()
     {
-        // 4 cifras de 5, los dos puntos de 1 y 4 separaciones
-        Assert.Equal(25, DotMatrix.Render("25:00").GetLength(1));
+        // 4 cifras de 5, los dos puntos de 1 y 4 separaciones de 2
+        Assert.Equal(29, DotMatrix.Render("25:00").GetLength(1));
         Assert.Equal(7, DotMatrix.Render("25:00").GetLength(0));
     }
 }

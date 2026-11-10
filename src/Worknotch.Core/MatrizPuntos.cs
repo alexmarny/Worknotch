@@ -7,10 +7,11 @@ namespace Worknotch.Core;
 public static class DotMatrix
 {
     public const int Rows = 7;
+    private const int GlyphGap = 2;
 
     private static readonly Dictionary<char, string[]> Glyphs = new()
     {
-        ['0'] = [" ### ", "#   #", "#  ##", "# # #", "##  #", "#   #", " ### "],
+        ['0'] = [" ### ", "#   #", "#   #", "#   #", "#   #", "#   #", " ### "],
         ['1'] = ["  #  ", " ##  ", "  #  ", "  #  ", "  #  ", "  #  ", " ### "],
         ['2'] = [" ### ", "#   #", "    #", "   # ", "  #  ", " #   ", "#####"],
         ['3'] = [" ### ", "#   #", "    #", "  ## ", "    #", "#   #", " ### "],
@@ -26,11 +27,11 @@ public static class DotMatrix
 
     public static string[] Glyph(char c) => Glyphs.TryGetValue(c, out var g) ? g : Glyphs[' '];
 
-    /// <summary>El texto entero como filas de celdas, con una columna vacía entre glifos.</summary>
+    /// <summary>El texto entero como filas de celdas, con dos columnas vacías entre glifos.</summary>
     public static bool[,] Render(string text)
     {
         var glyphs = text.Select(Glyph).ToList();
-        int cols = glyphs.Sum(g => g[0].Length) + Math.Max(0, glyphs.Count - 1);
+        int cols = glyphs.Sum(g => g[0].Length) + GlyphGap * Math.Max(0, glyphs.Count - 1);
         var cells = new bool[Rows, Math.Max(cols, 1)];
         int x = 0;
         foreach (var g in glyphs)
@@ -38,7 +39,7 @@ public static class DotMatrix
             for (int r = 0; r < Rows; r++)
                 for (int c = 0; c < g[r].Length; c++)
                     cells[r, x + c] = g[r][c] == '#';
-            x += g[0].Length + 1;
+            x += g[0].Length + GlyphGap;
         }
         return cells;
     }

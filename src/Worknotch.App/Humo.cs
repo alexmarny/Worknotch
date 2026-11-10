@@ -130,7 +130,7 @@ internal static class Smoke
         Planner.Complete(d, gimnasio.Id, now.AddHours(-2));
         var correo = Planner.AddFromLine(d, "Contestar el correo de la beca", today, now);
         Planner.Complete(d, correo.Id, now.AddMinutes(-40));
-        Planner.AddFromLine(d, "Idea: revisión semanal cada viernes", null, now);
+        Planner.AddFromLine(d, "Idea: una revisión semanal sin día", today, now);
         Planner.AddFromLine(d, "Renovar el pasaporte", null, now);
         Planner.AddFromLine(d, "Preparar las diapositivas mañana 9:00", today, now);
 

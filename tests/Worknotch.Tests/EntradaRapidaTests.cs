@@ -124,4 +124,15 @@ public class EntradaRapidaTests
     {
         Assert.Equal("Trabajo fin de grado", P("Índice #Trabajo_fin_de_grado").Project);
     }
+
+    [Fact]
+    public void CadaViernesEsSemanalDesdeElProximoViernes()
+    {
+        var e = P("Revisión semanal cada viernes");
+        Assert.Equal("Revisión semanal", e.Title);
+        Assert.Equal(Repeat.Weekly, e.Repeat);
+        Assert.Equal(Dates.Today.AddDays(2), e.Day);
+        // hoy es miércoles: «cada miércoles» empieza hoy
+        Assert.Equal(Dates.Today, P("Yoga cada miércoles").Day);
+    }
 }
