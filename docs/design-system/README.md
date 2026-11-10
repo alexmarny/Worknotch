@@ -1,6 +1,6 @@
 # Worknotch Notch
 
-Un notch negro que sale del borde de arriba, tarjetas de grafito y una pantalla de puntos ámbar. Es el diseño de Worknotch, y aquí está lo necesario para seguir construyéndolo sin perder el estilo.
+Un notch negro que sale del borde de arriba, una tarjeta de color por cada cosa y una pantalla de puntos ámbar. Es el diseño de Worknotch, y aquí está lo necesario para seguir construyéndolo sin perder el estilo.
 
 ## Contenido y tono
 
@@ -34,11 +34,15 @@ Valen para todo lo nuevo que entre en la app.
 
 ## Fundamentos visuales
 
-**Dos materiales.** El notch (`wn-notch`) es el borde de la pantalla prolongado: negro puro en Noche, sin degradados ni sombra. El contenido va en tarjetas (`wn-tarjeta`), y dentro de ellas lo que se toca va sobre `wn-relieve`.
+**Dos materiales.** El notch (`wn-notch`) es el borde de la pantalla prolongado: negro puro en Noche, sin degradados ni sombra. El contenido va en tarjetas, y dentro de ellas lo que se toca va sobre `wn-relieve`.
+
+**Una tarjeta, un color.** Cada tarjeta se reconoce por su color antes de leerla: Tareas en verde salvia, Foco en lavanda, Notas en paja, Recortes en azul pálido y Progreso en arcilla (`wn-tarjeta-tareas`…, en `tarjetas` de `tokens.json`). Son tonos medios en Noche y claros en Día. Ajustes y las columnas de la vista Semana usan la tarjeta neutra (`wn-tarjeta`).
+
+**Sobre color, tinta.** Dentro de una tarjeta de color los mismos tokens valen otra cosa (`en-tarjeta` de `tokens.json`): el texto es tinta casi negra, el relieve es la propia tarjeta un poco más oscura y el acento deja de ser ámbar, que ahí no contrasta, y pasa a ser la tinta. Por eso el botón principal de una tarjeta es oscuro con letra clara. No hay que hacer nada al construir: la tarjeta lleva ese ámbito en sus recursos (`Theme.CardScope`) y los estilos de siempre salen bien. Los menús se abren fuera de las tarjetas y tienen sus propios tokens (`wn-menu…`).
 
 **Dos temas.** Noche es el principal y Día es su versión clara. Se elige en Ajustes o se sigue a Windows. Cada token tiene valor en los dos.
 
-**Un solo acento.** `wn-ambar` marca la selección, el botón principal de cada vista y la hora de un aviso. No hay segundo color de marca. `wn-alta` y `wn-media` son solo para la prioridad y lo vencido; `wn-hecho`, solo para lo terminado.
+**Un solo acento.** `wn-ambar` marca, sobre el notch, la selección (el día, la vista), el día de hoy en Semana y la hora de un aviso; dentro de las tarjetas de color lo sustituye la tinta. No hay segundo color de marca. `wn-alta` y `wn-media` son solo para la prioridad y lo vencido; `wn-hecho`, solo para lo terminado.
 
 **La pantalla de puntos.** El temporizador es lo único con carácter propio: cifras de 5 × 7 puntos (`DotDisplay`), ámbar sobre negro en los dos temas, con los puntos apagados a la vista. No se usa para nada más que el tiempo de foco (en la tarjeta y, en pequeño, en la pastilla) y el icono.
 
@@ -50,7 +54,7 @@ Valen para todo lo nuevo que entre en la app.
 
 ## Componentes
 
-Pastilla, Panel, Aviso, Tarjeta (`Tarjeta`), Ficha de día (`Ficha`), Fila de tarea, Casilla (`Casilla`), Campo (`Campo`), Botón (`Boton`, `BotonPrincipal`, `BotonIcono`), Interruptor (`Interruptor`), Pantalla de puntos (`DotDisplay`), Columna de día (la gráfica de Semana). Los estilos están en `src/Worknotch.App/Estilos.xaml`.
+Pastilla, Panel, Aviso, Tarjeta (`Tarjeta`, con su color en `Background`), Columna de la vista Semana, Ficha (`Ficha`: días, vistas y «Por hacer / Hechas»), Fila de tarea, Casilla (`Casilla`), Campo (`Campo`), Botón (`Boton`, `BotonPrincipal`, `BotonIcono`), Interruptor (`Interruptor`), Pantalla de puntos (`DotDisplay`), Columna de día (la gráfica de Progreso). Los estilos están en `src/Worknotch.App/Estilos.xaml`.
 
 Los iconos son de trazo, a 16 px, en el color del texto de su botón (estilo `Icono`).
 
@@ -58,7 +62,7 @@ Los iconos son de trazo, a 16 px, en el color del texto de su botón (estilo `Ic
 
 1. Busca primero el componente en la lista de arriba.
 2. Toma los colores de `tokens.json`. Si falta uno, se añade ahí con su uso, para los dos temas, y con su contraste en `contrastes`.
-3. Comprueba 4,5:1 de contraste en los dos temas.
+3. Comprueba 4,5:1 de contraste en los dos temas. Una tarjeta de color nueva se añade a `tarjetas` y las pruebas comprueban la tinta sobre ella y sobre su hueco.
 4. Que quepa: el panel no pasa del ancho de la pantalla, y lo que no cabe se desplaza dentro de su tarjeta.
 5. No quites función por estilo: si algo cambia de forma, debe seguir pudiendo hacerse.
 6. Cumple «Textos e interacción» y «Construcción», y pasa `dotnet test` y la prueba de humo.

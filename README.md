@@ -18,7 +18,8 @@ a un gesto desde cualquier programa de Windows.
 - **Avisos en el propio notch**, con «Empezar foco», «Avisar en 5 min» y «Hecha».
 - **Notas** siempre a mano.
 - **Recortes.** Lo que copias y tus capturas de pantalla se cuelgan solos; pulsa uno para volver a copiarlo o arrástralo a otro programa.
-- **Semana.** Tareas hechas y minutos de foco de los últimos siete días, tu racha y tu mejor hora.
+- **Semana.** La bandeja y los próximos días, una columna cada uno, para repartir la semana de un vistazo.
+- **Progreso.** Tareas hechas y minutos de foco de los últimos siete días, tu racha y tu mejor hora.
 - **Claude puede planificar por ti.** Conéctalo una vez desde Ajustes y pídele «planifica mi tarde: informe, gimnasio y compra».
 - **Enlaces para scripts:** `worknotch://add?title=Comprar%20pan&day=mañana&time=17:30`.
 

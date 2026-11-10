@@ -13,11 +13,12 @@ Primera versión completa, escrita en una sesión sin Windows delante: **nadie l
 ### Funcionalidades
 
 - Pastilla arriba en el centro; se abre al pasar el puntero, con el atajo global (por defecto `Ctrl+Alt+Espacio`, se elige entre cinco) o desde el icono junto al reloj. `Esc` la cierra.
-- Tareas: hoy, seis días siguientes, bandeja sin día e historial de días pasados (solo consulta). Prioridad, proyecto, aviso, repetición, fecha límite, minutos de foco, pasos y notas. Entrada rápida en una línea. Subir, bajar, mover de día, deshacer (`Ctrl+Z`, 30 pasos).
+- Tareas: hoy, seis días siguientes, bandeja sin día e historial de días pasados (solo consulta), con pestañas «Por hacer» y «Hechas». Prioridad, proyecto, aviso, repetición, fecha límite, minutos de foco, pasos y notas. Entrada rápida en una línea. Subir, bajar, mover de día, deshacer (`Ctrl+Z`, 30 pasos).
 - Paso de día: lo pendiente se trae a hoy y recuerda de qué día viene (se puede apagar).
 - Foco: cuenta atrás o cronómetro, con o sin tarea, pausa, «5 min más», y el tiempo queda apuntado en la tarea y en la semana.
 - Avisos en el propio notch (recordatorio y final del foco), con sonido opcional.
-- Notas (se guardan solas), Recortes (portapapeles, capturas de pantalla, arrastrar y soltar), Semana (gráfica, racha, mejor hora).
+- Notas (se guardan solas), Recortes (portapapeles, capturas de pantalla, arrastrar y soltar), Progreso (gráfica de siete días, racha, mejor hora).
+- Vista Semana: la bandeja y cuatro días, una columna cada uno, para repartir tareas (se mueven con el menú de cada una).
 - Ajustes: tema, pantalla, atajo, tarjetas a la vista, arranque con Windows y demás.
 - Servidor MCP para Claude (`worknotch-mcp.exe`, 16 herramientas) y enlaces `worknotch://`.
 - Actualización desde la app, con suma SHA-256 comprobada.
@@ -48,6 +49,7 @@ Solución .NET 8 (`Worknotch.sln`), cuatro proyectos:
 
 - **WPF y no WinUI 3:** WPF se puede compilar desde Linux (con `EnableWindowsTargeting`), que es donde trabaja Claude en la nube; WinUI no. Ventana sin bordes, transparente y siempre encima, fuera de Alt+Tab.
 - **La ventana no cambia de tamaño:** es transparente y fija (1320 × 520); lo que crece es el borde `Shell`. Windows deja pasar los clics por donde no hay nada pintado.
+- **Tarjetas de color con tinta:** los tokens se redefinen en los recursos de cada tarjeta (`Theme.CardScope`), así que los estilos no saben si están sobre el notch o sobre color.
 - **Un solo latido** de un segundo (`Tick`) para todo lo que depende del tiempo: avisos, final del foco, cambio de día, cambios hechos por Claude, pantalla y pantalla completa.
 - **Dos procesos, un archivo:** la app y `worknotch-mcp` no se hablan; comparten `datos.json` con cerrojo, y la app repinta cuando cambia la fecha del archivo. Así Claude funciona aunque la app esté cerrada.
 - **Los errores de uso son `UserException`** con un texto que ya se puede enseñar; se muestran junto al campo o vuelven a Claude como resultado con `isError`.
@@ -82,11 +84,14 @@ La CI comprueba que arranca, que cada vista se pinta y cumple los criterios, y q
 - Dictar tareas con el reconocimiento de voz de Windows.
 - Eventos del calendario junto a las tareas (Outlook o Google).
 - Sincronizar con Microsoft To Do para tener las tareas en el móvil.
-- Arrastrar tareas para reordenarlas y soltarlas sobre un día.
+- Arrastrar tareas para reordenarlas y soltarlas sobre un día o una columna de Semana.
 - Buscar entre tareas hechas; filtro por proyecto.
 - Grabar cualquier atajo.
 
 ## Cómo probar
+
+- Para ver la interfaz sin Windows: lanzar a mano el workflow `Compilar` sobre la rama (Actions → Compilar → Run workflow). Además del artefacto «capturas», deja los PNG en la rama `ci-capturas`, que se reescribe cada vez.
+- Para compilar la app desde Linux hace falta el SDK de .NET de Microsoft (el de Ubuntu no trae `Microsoft.NET.Sdk.WindowsDesktop`): los paquetes `dotnet-sdk-8.0` y compañía de `packages.microsoft.com/ubuntu/22.04/prod`, extraídos con `dpkg -x`, sirven.
 
 - `dotnet test`: núcleo y criterios de diseño que no necesitan pintar (Windows o Linux).
 - `Worknotch.exe --humo carpeta`: cada vista en Noche y en Día, a PNG, con sus criterios (solo Windows; la CI sube las capturas).
